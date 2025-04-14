@@ -1,29 +1,51 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import { useNavigate, useLocation } from 'react-router-dom';
+import {
+  MDBBtn, MDBCard, MDBCardBody,
+  MDBCardImage, MDBInput, MDBIcon, MDBCheckbox
+} from 'mdb-react-ui-kit';
+import { useLocation, useNavigate, Link } from 'react-router-dom';
 
-const LoginForm = () => {
-  const navigate = useNavigate();
+export default function LoginForm() {
   const location = useLocation();
-  const query = new URLSearchParams(location.search);
-  const activated = query.get("activated") === "true";
+  const navigate = useNavigate();
+  const [formData, setFormData] = useState({
+    email: '',
+    password: ''
+  });
 
-  const [formData, setFormData] = useState({ email: '', password: '' });
   const [error, setError] = useState('');
+  const [message, setMessage] = useState('');
   const [loading, setLoading] = useState(false);
+  const [rememberMe, setRememberMe] = useState(false);
 
-  const handleChange = (e) =>
-    setFormData({ ...formData, [e.target.name]: e.target.value });
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    if (params.get('activated') === 'true') {
+      setMessage('Tài khoản đã được kích hoạt. Vui lòng đăng nhập.');
+    }
+    if (params.get('reset') === 'success') {
+      setMessage('Mật khẩu đã được đặt lại thành 123456. Vui lòng đăng nhập.');
+    }
+  }, [location]);
+  
+
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setFormData({
+      ...formData,
+      [name]: value
+    });
+    setError('');
+    setMessage('');
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
-    setError('');
-
     try {
       const res = await axios.post('http://localhost:5157/api/auth/login', formData);
-      const token = res.data.token;
-      localStorage.setItem('jwt_token', token);
+      localStorage.setItem('token', res.data.token);
       navigate('/home');
     } catch (err) {
       setError(err.response?.data?.message || 'Đăng nhập thất bại!');
@@ -33,50 +55,77 @@ const LoginForm = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-100 px-4">
-      <div className="bg-white p-8 rounded-lg shadow-md w-full max-w-md">
-        <h2 className="text-2xl font-bold text-center text-blue-700 mb-6">Đăng nhập</h2>
+    <div style={{ minHeight: '100vh', display: 'flex', justifyContent: 'center', alignItems: 'center', backgroundColor: '#f8f9fa' }}>
+      <MDBCard className="text-black w-100 mx-3" style={{ maxWidth: '900px', borderRadius: '25px' }}>
+        <MDBCardBody>
+          <div className="row g-0">
+            {/* FORM */}
+            <div className="col-md-6 d-flex flex-column align-items-center justify-content-center">
+              <p className="text-center h1 fw-bold mb-4 mt-4">LOGIN</p>
+              <form onSubmit={handleSubmit} className="w-100 px-4">
+                <div className="d-flex align-items-center mb-4">
+                  <MDBIcon fas icon="envelope me-3" size="lg" />
+                  <MDBInput
+                    label="Email"
+                    id="email"
+                    type="email"
+                    name="email"
+                    value={formData.email}
+                    onChange={handleChange}
+                    required
+                    className="text-black"
+                  />
+                </div>
 
-        {activated && (
-          <div className="mb-4 text-green-600 text-sm text-center font-medium">
-            Kích hoạt tài khoản thành công! Vui lòng đăng nhập để sử dụng dịch vụ.
+                <div className="d-flex align-items-center mb-3">
+                  <MDBIcon fas icon="lock me-3" size="lg" />
+                  <MDBInput
+                    label="Password"
+                    id="password"
+                    type="password"
+                    name="password"
+                    value={formData.password}
+                    onChange={handleChange}
+                    required
+                    className="text-black"
+                  />
+                </div>
+
+                <div className="d-flex justify-content-between align-items-center mb-3 px-1">
+                  <MDBCheckbox
+                    name="remember"
+                    value="remember"
+                    label="Remember me"
+                    checked={rememberMe}
+                    onChange={() => setRememberMe(!rememberMe)}
+                  />
+                  <Link to="/forgot-password" className="text-primary">Forgot password?</Link>
+                </div>
+
+                <MDBBtn type="submit" className="mb-3 w-100" size="lg" disabled={loading}>
+                  {loading ? 'Logging in...' : 'Login'}
+                </MDBBtn>
+
+                {message && <p className="text-success text-center">{message}</p>}
+                {error && <p className="text-danger text-center">{error}</p>}
+
+                <div className="text-center mt-3">
+                  <span>Don't have an account? </span>
+                  <Link to="/register" className="text-primary">Register</Link>
+                </div>
+              </form>
+            </div>
+
+            {/* IMAGE */}
+            <div className="col-md-6 d-flex align-items-center justify-content-center">
+              <MDBCardImage
+                src="https://mdbcdn.b-cdn.net/img/Photos/new-templates/bootstrap-login-form/draw2.webp"
+                fluid
+              />
+            </div>
           </div>
-        )}
-
-        {error && (
-          <div className="mb-4 text-red-600 text-sm text-center font-medium">{error}</div>
-        )}
-
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <input
-            type="email"
-            name="email"
-            placeholder="Email"
-            value={formData.email}
-            onChange={handleChange}
-            required
-            className="w-full px-4 py-2 border rounded focus:outline-none focus:ring focus:border-blue-500"
-          />
-          <input
-            type="password"
-            name="password"
-            placeholder="Mật khẩu"
-            value={formData.password}
-            onChange={handleChange}
-            required
-            className="w-full px-4 py-2 border rounded focus:outline-none focus:ring focus:border-blue-500"
-          />
-          <button
-            type="submit"
-            disabled={loading}
-            className="w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700 transition-colors"
-          >
-            {loading ? 'Đang đăng nhập...' : 'Đăng nhập'}
-          </button>
-        </form>
-      </div>
+        </MDBCardBody>
+      </MDBCard>
     </div>
   );
-};
-
-export default LoginForm;
+}
