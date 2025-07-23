@@ -16,7 +16,7 @@ export default function ForgotPasswordForm() {
     e.preventDefault();
     setLoading(true);
     try {
-      const res = await axios.post('http://localhost:5157/api/auth/forgot-password', { email });
+      const res = await axios.post('http://localhost:5286/api/admin/auth/reset-password', { email });
       setMessage(res.data.message);
       setError('');
     } catch (err) {

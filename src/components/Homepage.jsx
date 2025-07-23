@@ -1,7 +1,7 @@
 import React from 'react';
 
 const Homepage = () => {
-  const token = localStorage.getItem('jwt_token');
+  const token = localStorage.getItem('token');
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-green-100 px-4">

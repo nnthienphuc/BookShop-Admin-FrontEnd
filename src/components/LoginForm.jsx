@@ -44,7 +44,7 @@ export default function LoginForm() {
     e.preventDefault();
     setLoading(true);
     try {
-      const res = await axios.post('http://localhost:5208/api/auth/login', formData);
+      const res = await axios.post('http://localhost:5286/api/admin/auth/login', formData);
       localStorage.setItem('token', res.data.token);
       navigate('/home');
     } catch (err) {

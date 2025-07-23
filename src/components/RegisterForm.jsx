@@ -34,7 +34,7 @@ export default function RegisterForm() {
     e.preventDefault();
     setLoading(true);
     try {
-      const res = await axios.post('http://localhost:5157/api/auth/register', formData);
+      const res = await axios.post('http://localhost:5286/api/admin/auth/register', formData);
       setMessage(res.data.message || 'Đăng ký thành công!');
     } catch (err) {
       setError(err.response?.data?.message || 'Đăng ký thất bại!');
