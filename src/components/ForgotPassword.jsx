@@ -17,7 +17,7 @@ export default function ForgotPasswordForm() {
     setLoading(true);
     try {
       const res = await axios.post('http://localhost:5286/api/admin/auth/reset-password', { email });
-      setMessage(res.data.message);
+      setMessage(res.data.message || "Đã gửi yêu cầu đặt lại mật khẩu! Vui lòng kiểm tra email.");
       setError('');
     } catch (err) {
       setError(err.response?.data?.message || 'Có lỗi xảy ra.');
@@ -34,7 +34,7 @@ export default function ForgotPasswordForm() {
           <div className="row g-0">
             {/* FORM */}
             <div className="col-md-6 d-flex flex-column align-items-center justify-content-center">
-              <p className="text-center h3 fw-bold mb-4 mt-4">FORGOT PASSWORD</p>
+              <p className="text-center h3 fw-bold mb-4 mt-4">QUÊN MẬT KHẨU</p>
               <form onSubmit={handleSubmit} className="w-100 px-4">
                 <div className="d-flex align-items-center mb-4">
                   <MDBIcon fas icon="envelope me-3" size="lg" />
@@ -50,14 +50,14 @@ export default function ForgotPasswordForm() {
                 </div>
 
                 <MDBBtn type="submit" className="mb-3 w-100" size="lg" disabled={loading}>
-                  {loading ? 'Sending...' : 'Send Reset Link'}
+                  {loading ? 'Đang gửi...' : 'Gửi liên kết đặt lại mật khẩu'}
                 </MDBBtn>
 
                 {message && <p className="text-success text-center">{message}</p>}
                 {error && <p className="text-danger text-center">{error}</p>}
 
                 <div className="text-center mt-3">
-                  <Link to="/login" className="text-primary">Back to Login</Link>
+                  <Link to="/login" className="text-primary">Quay lại đăng nhập</Link>
                 </div>
               </form>
             </div>

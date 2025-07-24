@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import {
   MDBBtn, MDBContainer, MDBCard, MDBCardBody, MDBInput, MDBRadio
@@ -6,6 +6,7 @@ import {
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import { format } from 'date-fns';
+import { Link } from 'react-router-dom';
 
 const LABEL_WIDTH = '150px';
 const INPUT_WIDTH = '250px';
@@ -19,7 +20,7 @@ export default function RegisterForm() {
     phone: '',
     email: '',
     citizenIdentification: '',
-    gender: 0,
+    gender: 0, // 0: Nam, 1: Nữ
     password: '',
     confirmPassword: '',
   });
@@ -51,6 +52,7 @@ export default function RegisterForm() {
     e.preventDefault();
     setLoading(true);
 
+    // gender = true (Nữ), false (Nam) đúng chuẩn backend
     let sendData = { ...formData };
     sendData.dateOfBirth = formData.dateOfBirth ? format(formData.dateOfBirth, 'yyyy-MM-dd') : '';
     sendData.gender = formData.gender === 1 ? true : false;
@@ -166,19 +168,19 @@ export default function RegisterForm() {
   ];
 
   // Thêm vào component RegisterForm, trước return:
-React.useEffect(() => {
-  const style = document.createElement("style");
-  style.innerHTML = `
-    .react-datepicker-wrapper,
-    .react-datepicker__input-container,
-    .react-datepicker__input-container input {
-      width: ${INPUT_WIDTH} !important;
-      max-width: ${INPUT_WIDTH} !important;
-    }
-  `;
-  document.head.appendChild(style);
-  return () => { document.head.removeChild(style); };
-}, []);
+  useEffect(() => {
+    const style = document.createElement("style");
+    style.innerHTML = `
+      .react-datepicker-wrapper,
+      .react-datepicker__input-container,
+      .react-datepicker__input-container input {
+        width: ${INPUT_WIDTH} !important;
+        max-width: ${INPUT_WIDTH} !important;
+      }
+    `;
+    document.head.appendChild(style);
+    return () => { document.head.removeChild(style); };
+  }, []);
 
   return (
     <MDBContainer fluid className="my-5 d-flex justify-content-center">
@@ -271,9 +273,14 @@ React.useEffect(() => {
               </div>
             </div>
             <div style={{ textAlign: 'center', marginTop: 24 }}>
-              <MDBBtn type="submit" className="mb-3 mt-2" size="lg" disabled={loading}>
+              <MDBBtn type="submit" className="mb-2 mt-2" size="lg" disabled={loading}>
                 {loading ? 'Đang đăng ký...' : 'Đăng ký'}
               </MDBBtn>
+              {/* Dòng chuyển về đăng nhập */}
+              <div className="text-center mt-3">
+                <span>Bạn đã có tài khoản? </span>
+                <Link to="/login" className="text-primary">Đăng nhập</Link>
+              </div>
             </div>
             {error && <p className="text-danger text-center">{error}</p>}
             {message && <p className="text-success text-center">{message}</p>}

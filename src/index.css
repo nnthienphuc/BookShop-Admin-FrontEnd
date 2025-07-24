@@ -2,6 +2,16 @@
 @tailwind components;
 @tailwind utilities;
 
+input:-webkit-autofill,
+input:-webkit-autofill:focus,
+input:-webkit-autofill:hover,
+input:-webkit-autofill:active {
+  -webkit-text-fill-color: #222 !important;      /* Màu chữ */
+  caret-color: #222 !important;                  /* Màu con trỏ */
+  transition: background-color 5000s ease-in-out 0s;
+  box-shadow: 0 0 0px 1000px #fff inset;         /* Nền input */
+}
+
 html, body, #root {
   /* height: 100%; */
   width: 100%;

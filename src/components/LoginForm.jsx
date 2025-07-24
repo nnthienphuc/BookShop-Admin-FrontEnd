@@ -61,7 +61,7 @@ export default function LoginForm() {
           <div className="row g-0">
             {/* FORM */}
             <div className="col-md-6 d-flex flex-column align-items-center justify-content-center">
-              <p className="text-center h1 fw-bold mb-4 mt-4">LOGIN</p>
+              <p className="text-center h1 fw-bold mb-4 mt-4">ĐĂNG NHẬP</p>
               <form onSubmit={handleSubmit} className="w-100 px-4">
                 <div className="d-flex align-items-center mb-4">
                   <MDBIcon fas icon="envelope me-3" size="lg" />
@@ -80,7 +80,7 @@ export default function LoginForm() {
                 <div className="d-flex align-items-center mb-3">
                   <MDBIcon fas icon="lock me-3" size="lg" />
                   <MDBInput
-                    label="Password"
+                    label="Mật khẩu"
                     id="password"
                     type="password"
                     name="password"
@@ -95,23 +95,23 @@ export default function LoginForm() {
                   <MDBCheckbox
                     name="remember"
                     value="remember"
-                    label="Remember me"
+                    label="Ghi nhớ đăng nhập"
                     checked={rememberMe}
                     onChange={() => setRememberMe(!rememberMe)}
                   />
-                  <Link to="/forgot-password" className="text-primary">Forgot password?</Link>
+                  <Link to="/forgot-password" className="text-primary">Quên mật khẩu?</Link>
                 </div>
 
                 <MDBBtn type="submit" className="mb-3 w-100" size="lg" disabled={loading}>
-                  {loading ? 'Logging in...' : 'Login'}
+                  {loading ? 'Đang đăng nhập...' : 'Đăng nhập'}
                 </MDBBtn>
 
                 {message && <p className="text-success text-center">{message}</p>}
                 {error && <p className="text-danger text-center">{error}</p>}
 
                 <div className="text-center mt-3">
-                  <span>Don't have an account? </span>
-                  <Link to="/register" className="text-primary">Register</Link>
+                  <span>Bạn chưa có tài khoản? </span>
+                  <Link to="/register" className="text-primary">Đăng ký</Link>
                 </div>
               </form>
             </div>
