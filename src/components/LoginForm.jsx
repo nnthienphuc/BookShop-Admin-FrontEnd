@@ -41,18 +41,18 @@ export default function LoginForm() {
   };
 
   const handleSubmit = async (e) => {
-    e.preventDefault();
-    setLoading(true);
-    try {
-      const res = await axios.post('http://localhost:5286/api/admin/auth/login', formData);
-      localStorage.setItem('token', res.data.token);
-      navigate('/home');
-    } catch (err) {
-      setError(err.response?.data?.message || 'Đăng nhập thất bại!');
-    } finally {
-      setLoading(false);
-    }
-  };
+  e.preventDefault();
+  setLoading(true);
+  try {
+    const res = await axios.post('http://localhost:5286/api/admin/auth/login', formData);
+    localStorage.setItem('token', res.data.token);
+    navigate('/admin/category');  // Đổi sang trang Category CRUD
+  } catch (err) {
+    setError(err.response?.data?.message || 'Đăng nhập thất bại!');
+  } finally {
+    setLoading(false);
+  }
+};
 
   return (
     <div style={{ minHeight: '100vh', display: 'flex', justifyContent: 'center', alignItems: 'center', backgroundColor: '#f8f9fa' }}>
