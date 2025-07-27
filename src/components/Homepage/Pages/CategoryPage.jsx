@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useMemo } from 'react';
 import axiosInstance from '../../../utils/axiosInstance';
 import {
   MDBBtn, MDBTable, MDBTableHead, MDBTableBody, MDBInput, MDBIcon, MDBModal, MDBModalDialog,
@@ -25,11 +25,9 @@ export default function CategoryPage() {
   const [deleteId, setDeleteId] = useState('');
   const [deleteLoading, setDeleteLoading] = useState(false);
 
-  // SORT state
   const [sortBy, setSortBy] = useState(SORTS.id);
   const [sortOrder, setSortOrder] = useState('asc');
 
-  // Lấy danh sách category
   const fetchCategories = async () => {
     setLoading(true);
     setError('');
@@ -51,8 +49,7 @@ export default function CategoryPage() {
     // eslint-disable-next-line
   }, [search]);
 
-  // SORT logic
-  const sortedCategories = React.useMemo(() => {
+  const sortedCategories = useMemo(() => {
     let sorted = [...categories];
     if (sortBy === SORTS.id) {
       sorted.sort((a, b) =>
@@ -76,7 +73,6 @@ export default function CategoryPage() {
     return sorted;
   }, [categories, sortBy, sortOrder]);
 
-  // Xử lý khi click tiêu đề cột để sort
   const handleSort = (field) => {
     if (sortBy === field) {
       setSortOrder((prev) => (prev === 'asc' ? 'desc' : 'asc'));
@@ -86,63 +82,60 @@ export default function CategoryPage() {
     }
   };
 
-  // Render icon mũi tên sort cạnh cột
   const renderSortIcon = (field) => {
-  // Mũi tên xám khi không sort
-  if (sortBy !== field)
-    return (
-      <svg style={{ marginLeft: 6, opacity: 0.25, verticalAlign: 'middle' }} width="20" height="20">
-        <path d="M5 13h10l-5 5z" fill="currentColor" />
-        <path d="M5 7h10l-5-5z" fill="currentColor" opacity="0.5" />
-      </svg>
-    );
-  // Mũi tên xanh khi đang sort
-  return sortOrder === 'asc'
-    ? (
-      <svg style={{ marginLeft: 6, verticalAlign: 'middle' }} width="20" height="20">
-        <path d="M5 13h10l-5 5z" fill="#16a34a" />
-        <path d="M5 7h10l-5-5z" fill="#d1d5db" opacity="0.2" />
-      </svg>
-    )
-    : (
-      <svg style={{ marginLeft: 6, verticalAlign: 'middle' }} width="20" height="20">
-        <path d="M5 7h10l-5-5z" fill="#16a34a" />
-        <path d="M5 13h10l-5 5z" fill="#d1d5db" opacity="0.2" />
-      </svg>
-    );
-};
+    if (sortBy !== field)
+      return (
+        <svg style={{ marginLeft: 6, opacity: 0.25, verticalAlign: 'middle' }} width="20" height="20">
+          <path d="M5 13h10l-5 5z" fill="currentColor" />
+          <path d="M5 7h10l-5-5z" fill="currentColor" opacity="0.5" />
+        </svg>
+      );
+    return sortOrder === 'asc'
+      ? (
+        <svg style={{ marginLeft: 6, verticalAlign: 'middle' }} width="20" height="20">
+          <path d="M5 13h10l-5 5z" fill="#16a34a" />
+          <path d="M5 7h10l-5-5z" fill="#d1d5db" opacity="0.2" />
+        </svg>
+      )
+      : (
+        <svg style={{ marginLeft: 6, verticalAlign: 'middle' }} width="20" height="20">
+          <path d="M5 7h10l-5-5z" fill="#16a34a" />
+          <path d="M5 13h10l-5 5z" fill="#d1d5db" opacity="0.2" />
+        </svg>
+      );
+  };
 
-
-  // Mở modal thêm mới
+  // ========== ADD CONSOLE LOG DEBUG ===========
   const openAddModal = () => {
+    console.log("ĐÃ CLICK: Thêm mới");
     setModalMode('add');
     setCurrentCategory({ id: '', name: '', isDeleted: false });
     setShowModal(true);
     setError('');
   };
 
-  // Mở modal sửa
   const openEditModal = (cat) => {
+    console.log("ĐÃ CLICK: Sửa", cat);
     setModalMode('edit');
     setCurrentCategory({ id: cat.id, name: cat.name, isDeleted: cat.isDeleted });
     setShowModal(true);
     setError('');
   };
 
-  // Thêm/Sửa
   const handleSave = async (e) => {
     e.preventDefault();
+    console.log("ĐÃ SUBMIT form", modalMode, currentCategory);
     setSubmitLoading(true);
     try {
       if (modalMode === 'add') {
         await axiosInstance.post(API_BASE, {
-          name: currentCategory.name,
-          isDeleted: currentCategory.isDeleted
+          Name: currentCategory.name,
+          IsDeleted: currentCategory.isDeleted
         });
       } else {
         await axiosInstance.put(`${API_BASE}/${currentCategory.id}`, {
-          name: currentCategory.name,
-          isDeleted: currentCategory.isDeleted
+          Name: currentCategory.name,
+          IsDeleted: currentCategory.isDeleted
         });
       }
       setShowModal(false);
@@ -154,13 +147,13 @@ export default function CategoryPage() {
     }
   };
 
-  // Xác nhận xoá
   const confirmDelete = (id) => {
+    console.log("ĐÃ CLICK: Xoá", id);
     setDeleteId(id);
   };
 
-  // Thực hiện xoá
   const handleDelete = async () => {
+    console.log("ĐÃ CLICK: Xác nhận Xoá", deleteId);
     setDeleteLoading(true);
     try {
       await axiosInstance.delete(`${API_BASE}/${deleteId}`);
@@ -172,8 +165,8 @@ export default function CategoryPage() {
       setDeleteLoading(false);
     }
   };
+  // ========== END CONSOLE LOG DEBUG ===========
 
-  // Hiển thị từng dòng trong bảng
   const renderRows = () => {
     if (loading) {
       return (
