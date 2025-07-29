@@ -1,10 +1,10 @@
 import React, { useEffect, useState } from 'react';
 import axiosInstance from '../../../utils/axiosInstance';
 
-const API_BASE = 'http://localhost:5286/api/admin/categories';
+const API_BASE = 'http://localhost:5286/api/admin/authors';
 
-export default function CategoryPage() {
-  const [categories, setCategories] = useState([]);
+export default function AuthorPage() {
+  const [authors, setAuthors] = useState([]);
   const [form, setForm] = useState({ id: '', name: '', isDeleted: false });
   const [search, setSearch] = useState('');
   const [modalVisible, setModalVisible] = useState(false);
@@ -12,14 +12,16 @@ export default function CategoryPage() {
   const [deleteId, setDeleteId] = useState(null);
   const [sortConfig, setSortConfig] = useState({ key: '', direction: 'asc' });
 
-  const fetchCategories = async () => {
+  const fetchAuthors = async () => {
     try {
       const url = search
         ? `${API_BASE}/search?keyword=${encodeURIComponent(search)}`
         : API_BASE;
+
       const res = await axiosInstance.get(url);
       let data = res.data || [];
 
+      // Sorting
       if (sortConfig.key) {
         data.sort((a, b) => {
           let aVal = a[sortConfig.key];
@@ -32,14 +34,14 @@ export default function CategoryPage() {
         });
       }
 
-      setCategories(data);
+      setAuthors(data);
     } catch (err) {
-      alert(err.response?.data?.message || 'Không thể tải dữ liệu!');
+      alert(err.response?.data?.message || 'Không thể tải dữ liệu tác giả!');
     }
   };
 
   useEffect(() => {
-    fetchCategories();
+    fetchAuthors();
   }, [search, sortConfig]);
 
   const openAdd = () => {
@@ -48,8 +50,8 @@ export default function CategoryPage() {
     setModalVisible(true);
   };
 
-  const openEdit = (cat) => {
-    setForm(cat);
+  const openEdit = (author) => {
+    setForm(author);
     setIsEdit(true);
     setModalVisible(true);
   };
@@ -69,9 +71,9 @@ export default function CategoryPage() {
 
       alert('Lưu thành công!');
       setModalVisible(false);
-      fetchCategories();
+      fetchAuthors();
     } catch (err) {
-      alert(err.response?.data?.message || 'Có lỗi xảy ra!');
+      alert(err.response?.data?.message || 'Lỗi khi lưu tác giả!');
     }
   };
 
@@ -83,7 +85,7 @@ export default function CategoryPage() {
       alert(err.response?.data?.message || 'Xoá thất bại!');
     } finally {
       setDeleteId(null);
-      fetchCategories();
+      fetchAuthors();
     }
   };
 
@@ -103,7 +105,7 @@ export default function CategoryPage() {
 
   return (
     <div className="container mt-4">
-      <h2>Danh mục sách</h2>
+      <h2>Danh sách tác giả</h2>
       <div className="d-flex gap-2 mb-3">
         <button className="btn btn-success" onClick={openAdd}>Thêm</button>
         <input
@@ -132,18 +134,18 @@ export default function CategoryPage() {
           </tr>
         </thead>
         <tbody>
-          {categories.length === 0 ? (
+          {authors.length === 0 ? (
             <tr><td colSpan={5} className="text-center">Không có dữ liệu</td></tr>
           ) : (
-            categories.map((cat, i) => (
-              <tr key={cat.id}>
+            authors.map((author, i) => (
+              <tr key={author.id}>
                 <td>{i + 1}</td>
-                <td>{cat.id}</td>
-                <td>{cat.name}</td>
-                <td><input type="checkbox" checked={cat.isDeleted} readOnly /></td>
+                <td>{author.id}</td>
+                <td>{author.name}</td>
+                <td><input type="checkbox" checked={author.isDeleted} readOnly /></td>
                 <td>
-                  <button className="btn btn-info btn-sm me-2" onClick={() => openEdit(cat)}>Sửa</button>
-                  <button className="btn btn-danger btn-sm" onClick={() => setDeleteId(cat.id)}>Xoá</button>
+                  <button className="btn btn-info btn-sm me-2" onClick={() => openEdit(author)}>Sửa</button>
+                  <button className="btn btn-danger btn-sm" onClick={() => setDeleteId(author.id)}>Xoá</button>
                 </td>
               </tr>
             ))
@@ -157,14 +159,14 @@ export default function CategoryPage() {
           <div className="modal-dialog">
             <div className="modal-content">
               <div className="modal-header">
-                <h5 className="modal-title">{isEdit ? 'Sửa' : 'Thêm'} danh mục</h5>
+                <h5 className="modal-title">{isEdit ? 'Sửa' : 'Thêm'} tác giả</h5>
                 <button type="button" className="btn-close" onClick={() => setModalVisible(false)}></button>
               </div>
               <div className="modal-body">
                 <input
                   type="text"
                   className="form-control mb-2"
-                  placeholder="Tên danh mục"
+                  placeholder="Tên tác giả"
                   value={form.name}
                   onChange={(e) => setForm({ ...form, name: e.target.value })}
                 />
@@ -200,7 +202,7 @@ export default function CategoryPage() {
                 <button type="button" className="btn-close" onClick={() => setDeleteId(null)}></button>
               </div>
               <div className="modal-body">
-                <p>Bạn có chắc chắn muốn xoá danh mục này?</p>
+                <p>Bạn có chắc chắn muốn xoá tác giả này?</p>
               </div>
               <div className="modal-footer">
                 <button className="btn btn-secondary" onClick={() => setDeleteId(null)}>Huỷ</button>
