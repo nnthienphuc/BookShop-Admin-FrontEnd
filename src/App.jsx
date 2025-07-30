@@ -24,15 +24,15 @@ function App() {
           <AdminLayout />
         </PrivateRoute>
       }>
+        <Route path="book" element={<BookPage />} />
         <Route path="category" element={<CategoryPage />} />
         <Route path="author" element={<AuthorPage />} />
         <Route path="publisher" element={<PublisherPage />} />
-        <Route path="book" element={<BookPage />} />
         {/* Add more pages here */}
       </Route>
 
       {/* Default route */}
-      <Route path="*" element={<Navigate to="/admin/category" replace />} />
+      <Route path="*" element={<Navigate to="/admin/book" replace />} />
     </Routes>
   );
 }
