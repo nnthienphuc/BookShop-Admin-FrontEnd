@@ -63,7 +63,7 @@ export default function BookPage() {
       publisher: "http://localhost:5286/api/admin/publishers",
     };
     const res = await axiosInstance.get(urlMap[type]);
-    setPopupData(res.data.filter(item => !item.isDeleted));
+    setPopupData(res.data.filter((item) => !item.isDeleted));
   };
 
   const openPopup = (type) => {
@@ -343,9 +343,11 @@ export default function BookPage() {
               <div className="modal-body row g-3">
                 {["isbn", "title"].map((field) => (
                   <div key={field} className="col-md-6">
+                    <label className="form-label text-capitalize">
+                      {field === "isbn" ? "ISBN" : "Tiêu đề"}
+                    </label>
                     <input
                       className="form-control"
-                      placeholder={field}
                       value={form[field] || ""}
                       onChange={(e) =>
                         setForm({ ...form, [field]: e.target.value })
@@ -354,18 +356,40 @@ export default function BookPage() {
                   </div>
                 ))}
 
-                {['category', 'author', 'publisher'].map(type => (
-  <div key={type} className="col-md-6 d-flex gap-2 align-items-center">
-    <input className="form-control" placeholder={`${type}Name`} value={form[`${type}Name`] || ''} readOnly />
-    <button className="btn btn-outline-primary" onClick={() => openPopup(type)}>Chọn</button>
-  </div>
-))}
+                {["category", "author", "publisher"].map((type) => (
+                  <div key={type} className="col-md-6">
+                    <label className="form-label text-capitalize">
+                      {type === "author"
+                        ? "Tác giả"
+                        : type === "category"
+                        ? "Thể loại"
+                        : "Nhà xuất bản"}
+                    </label>
+                    <div className="d-flex gap-2">
+                      <input
+                        className="form-control"
+                        value={form[`${type}Name`] || ""}
+                        readOnly
+                      />
+                      <button
+                        className="btn btn-outline-primary"
+                        onClick={() => openPopup(type)}
+                      >
+                        Chọn
+                      </button>
+                    </div>
+                  </div>
+                ))}
 
-                {["yearOfPublication", "price", "quantity"].map((field) => (
+                {[
+                  { field: "yearOfPublication", label: "Năm xuất bản" },
+                  { field: "price", label: "Giá" },
+                  { field: "quantity", label: "Số lượng" },
+                ].map(({ field, label }) => (
                   <div key={field} className="col-md-6">
+                    <label className="form-label">{label}</label>
                     <input
                       className="form-control"
-                      placeholder={field}
                       value={form[field] || ""}
                       onChange={(e) =>
                         setForm({ ...form, [field]: e.target.value })
@@ -375,7 +399,7 @@ export default function BookPage() {
                 ))}
 
                 <div className="col-md-6">
-                  <label>Ảnh:</label>
+                  <label className="form-label">Ảnh bìa</label>
                   <input
                     type="file"
                     className="form-control"
@@ -396,7 +420,7 @@ export default function BookPage() {
                 </div>
 
                 <div className="col-md-6 d-flex align-items-center">
-                  <label className="form-check-label me-2">Đã xoá:</label>
+                  <label className="form-label me-2">Đã xoá:</label>
                   <input
                     type="checkbox"
                     checked={form.isDeleted}

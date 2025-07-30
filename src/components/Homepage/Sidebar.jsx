@@ -3,9 +3,9 @@ import { useLocation, useNavigate } from 'react-router-dom';
 const menuItems = [
   { label: 'Sách', path: '/admin/book' },
   { label: 'Đơn hàng', path: '/admin/order' },
-  { label: 'Thể loại sách', path: '/admin/category' },
+  { label: 'Danh mục sách', path: '/admin/category' },
   { label: 'Khách hàng', path: '/admin/customer' },
-  { label: 'Giảm giá', path: '/admin/promotion' },
+  { label: 'Khuyến mãi', path: '/admin/promotion' },
   { label: 'Tác giả', path: '/admin/author' },
   { label: 'Nhà xuất bản', path: '/admin/publisher' },
   {
