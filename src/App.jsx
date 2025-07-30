@@ -2,27 +2,37 @@ import { Routes, Route, Navigate } from 'react-router-dom';
 import AdminLayout from './components/Homepage/AdminLayout';
 import CategoryPage from './components/Homepage/Pages/CategoryPage';
 import AuthorPage from './components/Homepage/Pages/AuthorPage';
+import PublisherPage from './components/Homepage/Pages/PublisherPage';
+
 import LoginForm from './components/LoginForm';
 import RegisterForm from './components/RegisterForm';
 import ForgotPasswordForm from './components/ForgotPassword';
-import PublisherPage from './components/Homepage/Pages/PublisherPage';
-
+import PrivateRoute from './components/PrivateRoute';
+import BookPage from './components/Homepage/Pages/BookPage';
 
 function App() {
   return (
     <Routes>
+      {/* Auth routes */}
       <Route path="/login" element={<LoginForm />} />
       <Route path="/register" element={<RegisterForm />} />
       <Route path="/forgot-password" element={<ForgotPasswordForm />} />
 
-      <Route path="/admin" element={<AdminLayout />}>
+      {/* Protected admin routes */}
+      <Route path="/admin" element={
+        <PrivateRoute>
+          <AdminLayout />
+        </PrivateRoute>
+      }>
         <Route path="category" element={<CategoryPage />} />
         <Route path="author" element={<AuthorPage />} />
         <Route path="publisher" element={<PublisherPage />} />
-
+        <Route path="book" element={<BookPage />} />
+        {/* Add more pages here */}
       </Route>
 
-      <Route path="*" element={<Navigate to="/admin/category" />} />
+      {/* Default route */}
+      <Route path="*" element={<Navigate to="/admin/category" replace />} />
     </Routes>
   );
 }
