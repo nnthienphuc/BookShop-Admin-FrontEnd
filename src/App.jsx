@@ -3,6 +3,7 @@ import AdminLayout from './components/Homepage/AdminLayout';
 import CategoryPage from './components/Homepage/Pages/CategoryPage';
 import AuthorPage from './components/Homepage/Pages/AuthorPage';
 import PublisherPage from './components/Homepage/Pages/PublisherPage';
+import PromotionPage from './components/Homepage/Pages/PromotionPage';
 
 import LoginForm from './components/LoginForm';
 import RegisterForm from './components/RegisterForm';
@@ -28,6 +29,7 @@ function App() {
         <Route path="category" element={<CategoryPage />} />
         <Route path="author" element={<AuthorPage />} />
         <Route path="publisher" element={<PublisherPage />} />
+        <Route path="promotion" element={<PromotionPage />} />
         {/* Add more pages here */}
       </Route>
 
