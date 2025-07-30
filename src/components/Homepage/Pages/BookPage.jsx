@@ -7,9 +7,13 @@ const API_BASE = 'http://localhost:5286/api/admin/books';
 export default function BookPage() {
   const [books, setBooks] = useState([]);
   const [form, setForm] = useState({
-    id: '', isbn: '', title: '', categoryId: '', authorId: '', publisherId: '',
-    yearOfPublication: '', price: '', quantity: '', isDeleted: false, image: null
-  });
+  id: '', isbn: '', title: '',
+  categoryId: '', categoryName: '',
+  authorId: '', authorName: '',
+  publisherId: '', publisherName: '',
+  yearOfPublication: '', price: '', quantity: '',
+  isDeleted: false, image: null
+});
   const [preview, setPreview] = useState(null);
   const [search, setSearch] = useState('');
   const [modalVisible, setModalVisible] = useState(false);
@@ -60,14 +64,19 @@ export default function BookPage() {
   };
 
   const handleSelect = (item) => {
-    const fieldMap = {
-      author: "authorId",
-      category: "categoryId",
-      publisher: "publisherId",
-    };
-    setForm({ ...form, [fieldMap[popupType]]: item.id });
-    setPopupType("");
+  const fieldMap = {
+    author: { id: "authorId", name: "authorName" },
+    category: { id: "categoryId", name: "categoryName" },
+    publisher: { id: "publisherId", name: "publisherName" },
   };
+  const { id, name } = fieldMap[popupType];
+  setForm({
+    ...form,
+    [id]: item.id,
+    [name]: item.name
+  });
+  setPopupType("");
+};
 
   useEffect(() => { fetchBooks(); }, [search, sortConfig]);
 
@@ -79,47 +88,54 @@ export default function BookPage() {
   };
 
   const openEdit = (book) => {
-    setForm(book);
-    setPreview(book.image ? `http://localhost:5286/${book.image}` : null);
-    setIsEdit(true);
-    setModalVisible(true);
-  };
+  setForm({
+    ...book,
+    categoryName: book.categoryName,
+    authorName: book.authorName,
+    publisherName: book.publisherName,
+  });
+  setPreview(book.image ? `http://localhost:5286/${book.image}` : null);
+  setIsEdit(true);
+  setModalVisible(true);
+};
 
   const handleSave = async () => {
-    try {
-      const formData = new FormData();
-      Object.entries(form).forEach(([key, value]) => {
-        if (key !== 'id' && key !== 'image') formData.append(key, value);
-      });
-      if (form.image instanceof File) {
-        formData.append('imageFile', form.image);
-      }
-
-      if (isEdit) {
-        await axiosInstance.put(`${API_BASE}/${form.id}`, formData);
-      } else {
-        await axiosInstance.post(API_BASE, formData);
-      }
-
-      alert('Lưu thành công!');
-      setModalVisible(false);
-      fetchBooks();
-    } catch (err) {
-      alert(err.response?.data?.message || 'Lỗi khi lưu sách!');
+  try {
+    const formData = new FormData();
+    Object.entries(form).forEach(([key, value]) => {
+      if (key !== 'id' && key !== 'image') formData.append(key, value);
+    });
+    if (form.image instanceof File) {
+      formData.append('imageFile', form.image);
     }
-  };
+
+    let res;
+    if (isEdit) {
+      res = await axiosInstance.put(`${API_BASE}/${form.id}`, formData);
+    } else {
+      res = await axiosInstance.post(API_BASE, formData);
+    }
+
+    alert(res.data?.message || 'Lưu thành công!');
+    setModalVisible(false);
+    fetchBooks();
+  } catch (err) {
+    alert(err.response?.data?.message || 'Lỗi khi lưu sách!');
+  }
+};
 
   const handleDelete = async () => {
-    try {
-      await axiosInstance.delete(`${API_BASE}/${deleteId}`);
-      alert('Xoá thành công!');
-    } catch (err) {
-      alert('Xoá thất bại!');
-    } finally {
-      setDeleteId(null);
-      fetchBooks();
-    }
-  };
+  try {
+    const res = await axiosInstance.delete(`${API_BASE}/${deleteId}`);
+    alert(res.data?.message || 'Xoá thành công!');
+  } catch (err) {
+    alert(err.response?.data?.message || 'Xoá thất bại!');
+  } finally {
+    setDeleteId(null);
+    fetchBooks();
+  }
+};
+
 
   const toggleSort = (key) => {
     setSortConfig(prev => ({
@@ -143,20 +159,21 @@ export default function BookPage() {
 
       <table className="table table-bordered table-hover">
         <thead>
-          <tr>
-            <th>#</th>
-            <th onClick={() => toggleSort('isbn')} style={{ cursor: 'pointer' }}>ISBN {getSortIcon('isbn')}</th>
-            <th onClick={() => toggleSort('title')} style={{ cursor: 'pointer' }}>Tên {getSortIcon('title')}</th>
-            <th>Tác giả</th>
-            <th>Thể loại</th>
-            <th>NXB</th>
-            <th>Năm</th>
-            <th>Giá</th>
-            <th>Số lượng</th>
-            <th>Ảnh</th>
-            <th>Thao tác</th>
-          </tr>
-        </thead>
+  <tr>
+    <th>#</th>
+    <th onClick={() => toggleSort('isbn')} style={{ cursor: 'pointer' }}>ISBN {getSortIcon('isbn')}</th>
+    <th onClick={() => toggleSort('title')} style={{ cursor: 'pointer' }}>Tên {getSortIcon('title')}</th>
+    <th onClick={() => toggleSort('authorName')} style={{ cursor: 'pointer' }}>Tác giả {getSortIcon('authorName')}</th>
+    <th onClick={() => toggleSort('categoryName')} style={{ cursor: 'pointer' }}>Thể loại {getSortIcon('categoryName')}</th>
+    <th onClick={() => toggleSort('publisherName')} style={{ cursor: 'pointer' }}>NXB {getSortIcon('publisherName')}</th>
+    <th onClick={() => toggleSort('yearOfPublication')} style={{ cursor: 'pointer' }}>Năm {getSortIcon('yearOfPublication')}</th>
+    <th onClick={() => toggleSort('price')} style={{ cursor: 'pointer' }}>Giá {getSortIcon('price')}</th>
+    <th onClick={() => toggleSort('quantity')} style={{ cursor: 'pointer' }}>Số lượng {getSortIcon('quantity')}</th>
+    <th onClick={() => toggleSort('isDeleted')} style={{ cursor: 'pointer' }}>Đã xoá {getSortIcon('isDeleted')}</th>
+    <th>Ảnh</th>
+    <th>Thao tác</th>
+  </tr>
+</thead>
         <tbody>
           {books.length === 0 ? <tr><td colSpan={11} className="text-center">Không có dữ liệu</td></tr> :
             books.map((b, i) => (
@@ -170,6 +187,7 @@ export default function BookPage() {
                 <td>{b.yearOfPublication}</td>
                 <td>{b.price}</td>
                 <td>{b.quantity}</td>
+                <td><input type="checkbox" checked={b.isDeleted} readOnly /></td>
                 <td>{b.image && <img src={`http://localhost:5286/${b.image}`} alt="book" width={40} />}</td>
                 <td>
                   <button className="btn btn-info btn-sm me-2" onClick={() => openEdit(b)}>Sửa</button>
@@ -196,11 +214,16 @@ export default function BookPage() {
                 ))}
 
                 {['category', 'author', 'publisher'].map(type => (
-                  <div key={type} className="col-md-6 d-flex gap-2 align-items-center">
-                    <input className="form-control" placeholder={`${type}Id`} value={form[`${type}Id`] || ''} readOnly />
-                    <button className="btn btn-outline-primary" onClick={() => openPopup(type)}>Chọn</button>
-                  </div>
-                ))}
+  <div key={type} className="col-md-6 d-flex gap-2 align-items-center">
+    <input
+      className="form-control"
+      placeholder={`${type}Name`}
+      value={form[`${type}Name`] || ''}
+      readOnly
+    />
+    <button className="btn btn-outline-primary" onClick={() => openPopup(type)}>Chọn</button>
+  </div>
+))}
 
                 {['yearOfPublication', 'price', 'quantity'].map(field => (
                   <div key={field} className="col-md-6">

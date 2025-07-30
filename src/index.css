@@ -85,3 +85,30 @@ button:focus-visible {
     background-color: #f9f9f9;
   }
 }
+
+.dialog-backdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0,0,0,0.4);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 9999;
+}
+
+.dialog-content {
+  background: white;
+  padding: 20px;
+  border-radius: 10px;
+  width: 500px;
+  max-height: 80vh;
+  overflow-y: auto;
+}
+
+.dialog-header, .dialog-footer {
+  margin-bottom: 10px;
+}
+
