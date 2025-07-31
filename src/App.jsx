@@ -10,6 +10,7 @@ import RegisterForm from './components/RegisterForm';
 import ForgotPasswordForm from './components/ForgotPassword';
 import PrivateRoute from './components/PrivateRoute';
 import BookPage from './components/Homepage/Pages/BookPage';
+import CustomerPage from './components/Homepage/Pages/CustomerPage';
 
 function App() {
   return (
@@ -30,6 +31,8 @@ function App() {
         <Route path="author" element={<AuthorPage />} />
         <Route path="publisher" element={<PublisherPage />} />
         <Route path="promotion" element={<PromotionPage />} />
+        <Route path="/admin/customer" element={<CustomerPage />} />
+
         {/* Add more pages here */}
       </Route>
 
