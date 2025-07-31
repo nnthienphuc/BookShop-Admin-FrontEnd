@@ -12,6 +12,8 @@ import PrivateRoute from './components/PrivateRoute';
 import BookPage from './components/Homepage/Pages/BookPage';
 import CustomerPage from './components/Homepage/Pages/CustomerPage';
 import StaffPage from './components/Homepage/Pages/StaffPage';
+import OrderPage from './components/Homepage/Pages/OrderPage';
+
 
 function App() {
   return (
@@ -34,6 +36,7 @@ function App() {
         <Route path="promotion" element={<PromotionPage />} />
         <Route path="customer" element={<CustomerPage />} />
         <Route path="staff" element={<StaffPage />} />
+        <Route path="order" element={<OrderPage />} />
 
         {/* Add more pages here */}
       </Route>
