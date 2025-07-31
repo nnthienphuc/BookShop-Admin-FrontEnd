@@ -19,6 +19,7 @@ export default function PromotionPage() {
   const [isEdit, setIsEdit] = useState(false);
   const [deleteId, setDeleteId] = useState(null);
   const [search, setSearch] = useState("");
+  const [sortConfig, setSortConfig] = useState({ key: null, direction: "asc" });
 
   const fetchPromotions = async () => {
     const url = search ? `${API_BASE}/search?keyword=${search}` : API_BASE;
@@ -85,13 +86,52 @@ export default function PromotionPage() {
     }
   };
 
+  const handleSort = (key) => {
+    setSortConfig((prev) =>
+      prev.key === key
+        ? { key, direction: prev.direction === "asc" ? "desc" : "asc" }
+        : { key, direction: "asc" }
+    );
+  };
+
+  const renderSortIcon = (key) => {
+    if (sortConfig.key !== key) return null;
+    return sortConfig.direction === "asc" ? " ▲" : " ▼";
+  };
+
+  const sortedPromotions = React.useMemo(() => {
+    const sorted = [...promotions];
+    if (sortConfig.key) {
+      sorted.sort((a, b) => {
+        let aVal = a[sortConfig.key];
+        let bVal = b[sortConfig.key];
+
+        // Format date & number fields
+        if (sortConfig.key === "startDate" || sortConfig.key === "endDate") {
+          aVal = new Date(aVal);
+          bVal = new Date(bVal);
+        } else if (
+          sortConfig.key === "condition" ||
+          sortConfig.key === "discountPercent" ||
+          sortConfig.key === "quantity"
+        ) {
+          aVal = Number(aVal);
+          bVal = Number(bVal);
+        }
+
+        if (aVal < bVal) return sortConfig.direction === "asc" ? -1 : 1;
+        if (aVal > bVal) return sortConfig.direction === "asc" ? 1 : -1;
+        return 0;
+      });
+    }
+    return sorted;
+  }, [promotions, sortConfig]);
+
   return (
     <div className="container mt-4">
-      <h2>Khuyến mãi</h2>
+      <h2>Danh sách Khuyến mãi</h2>
       <div className="d-flex gap-2 mb-3">
-        <button className="btn btn-success" onClick={openAdd}>
-          Thêm
-        </button>
+        <button className="btn btn-success" onClick={openAdd}>Thêm</button>
         <input
           className="form-control w-25"
           placeholder="Tìm kiếm..."
@@ -104,25 +144,37 @@ export default function PromotionPage() {
         <thead>
           <tr>
             <th>#</th>
-            <th>Tên</th>
-            <th>Ngày bắt đầu</th>
-            <th>Ngày kết thúc</th>
-            <th>Điều kiện</th>
-            <th>Giảm (%)</th>
-            <th>Số lượng</th>
-            <th>Đã xoá</th>
+            <th onClick={() => handleSort("name")} style={{ cursor: "pointer" }}>
+              Tên {renderSortIcon("name")}
+            </th>
+            <th onClick={() => handleSort("startDate")} style={{ cursor: "pointer" }}>
+              Ngày bắt đầu {renderSortIcon("startDate")}
+            </th>
+            <th onClick={() => handleSort("endDate")} style={{ cursor: "pointer" }}>
+              Ngày kết thúc {renderSortIcon("endDate")}
+            </th>
+            <th onClick={() => handleSort("condition")} style={{ cursor: "pointer" }}>
+              Điều kiện {renderSortIcon("condition")}
+            </th>
+            <th onClick={() => handleSort("discountPercent")} style={{ cursor: "pointer" }}>
+              Giảm (%) {renderSortIcon("discountPercent")}
+            </th>
+            <th onClick={() => handleSort("quantity")} style={{ cursor: "pointer" }}>
+              Số lượng {renderSortIcon("quantity")}
+            </th>
+            <th onClick={() => handleSort("isDeleted")} style={{ cursor: "pointer" }}>
+              Đã xoá {renderSortIcon("isDeleted")}
+            </th>
             <th>Thao tác</th>
           </tr>
         </thead>
         <tbody>
-          {promotions.length === 0 ? (
+          {sortedPromotions.length === 0 ? (
             <tr>
-              <td colSpan={9} className="text-center">
-                Không có dữ liệu
-              </td>
+              <td colSpan={9} className="text-center">Không có dữ liệu</td>
             </tr>
           ) : (
-            promotions.map((p, i) => (
+            sortedPromotions.map((p, i) => (
               <tr key={p.id}>
                 <td>{i + 1}</td>
                 <td>{p.name}</td>
@@ -131,22 +183,10 @@ export default function PromotionPage() {
                 <td>{p.condition}</td>
                 <td>{p.discountPercent}</td>
                 <td>{p.quantity}</td>
+                <td><input type="checkbox" checked={p.isDeleted} readOnly /></td>
                 <td>
-                  <input type="checkbox" checked={p.isDeleted} readOnly />
-                </td>
-                <td>
-                  <button
-                    className="btn btn-info btn-sm me-2"
-                    onClick={() => openEdit(p)}
-                  >
-                    Sửa
-                  </button>
-                  <button
-                    className="btn btn-danger btn-sm"
-                    onClick={() => setDeleteId(p.id)}
-                  >
-                    Xoá
-                  </button>
+                  <button className="btn btn-info btn-sm me-2" onClick={() => openEdit(p)}>Sửa</button>
+                  <button className="btn btn-danger btn-sm" onClick={() => setDeleteId(p.id)}>Xoá</button>
                 </td>
               </tr>
             ))
@@ -154,19 +194,14 @@ export default function PromotionPage() {
         </tbody>
       </table>
 
+      {/* Modal Thêm/Sửa */}
       {modalVisible && (
         <div className="modal show fade d-block" tabIndex="-1">
           <div className="modal-dialog">
             <div className="modal-content">
               <div className="modal-header">
-                <h5 className="modal-title">
-                  {isEdit ? "Sửa" : "Thêm"} khuyến mãi
-                </h5>
-                <button
-                  type="button"
-                  className="btn-close"
-                  onClick={() => setModalVisible(false)}
-                ></button>
+                <h5 className="modal-title">{isEdit ? "Sửa" : "Thêm"} khuyến mãi</h5>
+                <button type="button" className="btn-close" onClick={() => setModalVisible(false)}></button>
               </div>
               <div className="modal-body row g-3">
                 {[
@@ -202,46 +237,29 @@ export default function PromotionPage() {
                 </div>
               </div>
               <div className="modal-footer">
-                <button
-                  className="btn btn-secondary"
-                  onClick={() => setModalVisible(false)}
-                >
-                  Huỷ
-                </button>
-                <button className="btn btn-primary" onClick={handleSave}>
-                  Lưu
-                </button>
+                <button className="btn btn-secondary" onClick={() => setModalVisible(false)}>Huỷ</button>
+                <button className="btn btn-primary" onClick={handleSave}>Lưu</button>
               </div>
             </div>
           </div>
         </div>
       )}
 
+      {/* Modal Xoá */}
       {deleteId && (
         <div className="modal show fade d-block" tabIndex="-1">
           <div className="modal-dialog">
             <div className="modal-content">
               <div className="modal-header">
                 <h5 className="modal-title">Xác nhận xoá</h5>
-                <button
-                  type="button"
-                  className="btn-close"
-                  onClick={() => setDeleteId(null)}
-                ></button>
+                <button type="button" className="btn-close" onClick={() => setDeleteId(null)}></button>
               </div>
               <div className="modal-body">
                 <p>Bạn có chắc muốn xoá khuyến mãi này?</p>
               </div>
               <div className="modal-footer">
-                <button
-                  className="btn btn-secondary"
-                  onClick={() => setDeleteId(null)}
-                >
-                  Huỷ
-                </button>
-                <button className="btn btn-danger" onClick={handleDelete}>
-                  Xoá
-                </button>
+                <button className="btn btn-secondary" onClick={() => setDeleteId(null)}>Huỷ</button>
+                <button className="btn btn-danger" onClick={handleDelete}>Xoá</button>
               </div>
             </div>
           </div>

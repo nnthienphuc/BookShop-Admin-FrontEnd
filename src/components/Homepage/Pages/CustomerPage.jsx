@@ -140,7 +140,7 @@ export default function CustomerPage() {
 
   return (
     <div className="container mt-4">
-      <h2>Khách hàng</h2>
+      <h2>Danh sách Khách hàng</h2>
       <div className="d-flex gap-2 mb-3">
         <button className="btn btn-success" onClick={openAdd}>Thêm</button>
         <input
