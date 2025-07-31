@@ -134,6 +134,7 @@ export default function OrderPage() {
             {[
               ["staffName", "Nhân viên"],
               ["customerName", "Khách hàng"],
+              ["customerPhone", "SĐT Khách"],
               ["createdTime", "Ngày"],
               ["status", "Trạng thái"],
               ["shippingFee", "Phí ship"],
@@ -158,6 +159,7 @@ export default function OrderPage() {
                 <td>{i + 1}</td>
                 <td>{o.staffName}</td>
                 <td>{o.customerName}</td>
+                <td>{o.customerPhone}</td>
                 <td>{new Date(o.createdTime).toLocaleString()}</td>
                 <td>{o.status}</td>
                 <td>{o.shippingFee}</td>
