@@ -11,6 +11,7 @@ import ForgotPasswordForm from './components/ForgotPassword';
 import PrivateRoute from './components/PrivateRoute';
 import BookPage from './components/Homepage/Pages/BookPage';
 import CustomerPage from './components/Homepage/Pages/CustomerPage';
+import StaffPage from './components/Homepage/Pages/StaffPage';
 
 function App() {
   return (
@@ -31,7 +32,8 @@ function App() {
         <Route path="author" element={<AuthorPage />} />
         <Route path="publisher" element={<PublisherPage />} />
         <Route path="promotion" element={<PromotionPage />} />
-        <Route path="/admin/customer" element={<CustomerPage />} />
+        <Route path="customer" element={<CustomerPage />} />
+        <Route path="staff" element={<StaffPage />} />
 
         {/* Add more pages here */}
       </Route>
