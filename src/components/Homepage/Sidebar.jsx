@@ -9,6 +9,7 @@ const menuItems = [
   { label: 'Khuyến mãi', path: '/admin/promotion' },
   { label: 'Tác giả', path: '/admin/author' },
   { label: 'Nhà xuất bản', path: '/admin/publisher' },
+  { label: 'Thống kê', path: '/admin/statistics' },
   {
     label: 'Đăng xuất',
     action: () => {

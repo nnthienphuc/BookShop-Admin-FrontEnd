@@ -13,6 +13,7 @@ import BookPage from './components/Homepage/Pages/BookPage';
 import CustomerPage from './components/Homepage/Pages/CustomerPage';
 import StaffPage from './components/Homepage/Pages/StaffPage';
 import OrderPage from './components/Homepage/Pages/OrderPage';
+import StatisticsPage from './components/Homepage/Pages/StatisticsPage';
 
 
 function App() {
@@ -37,6 +38,8 @@ function App() {
         <Route path="customer" element={<CustomerPage />} />
         <Route path="staff" element={<StaffPage />} />
         <Route path="order" element={<OrderPage />} />
+        <Route path="statistics" element={<StatisticsPage />} />
+
 
         {/* Add more pages here */}
       </Route>
