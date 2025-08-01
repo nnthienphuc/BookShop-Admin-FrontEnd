@@ -7,9 +7,19 @@ import {
   LinearScale,
   Tooltip,
   Legend,
+  Title
 } from "chart.js";
+import ChartDataLabels from "chartjs-plugin-datalabels";
 
-ChartJS.register(BarElement, CategoryScale, LinearScale, Tooltip, Legend);
+ChartJS.register(
+  BarElement,
+  CategoryScale,
+  LinearScale,
+  Tooltip,
+  Legend,
+  Title,
+  ChartDataLabels
+);
 
 export default function RevenueChart({ dataByMonth }) {
   const labels = [
@@ -32,10 +42,23 @@ export default function RevenueChart({ dataByMonth }) {
   const options = {
     responsive: true,
     plugins: {
-      legend: { position: "top" }
+      legend: { position: "top" },
+      datalabels: {
+        anchor: "end",
+        align: "end",
+        color: "#000",
+        formatter: function (value) {
+          if (value === 0) return "";
+          return value.toLocaleString("vi-VN") + " ₫";
+        },
+        font: {
+          weight: "bold"
+        }
+      }
     },
     scales: {
       y: {
+        beginAtZero: true,
         ticks: {
           callback: function (value) {
             return value.toLocaleString("vi-VN") + " ₫";
