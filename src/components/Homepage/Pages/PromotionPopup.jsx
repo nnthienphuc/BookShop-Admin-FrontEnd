@@ -24,7 +24,7 @@ export default function PromotionPopup({ open, onSelect, onClose }) {
         <div className="modal-body">
           <table className="table">
             <thead>
-              <tr><th>Tên</th><th>Ngày bắt đầu</th><th>Kết thúc</th><th>Điều kiện</th><th>% giảm</th><th>Số lượng</th><th></th></tr>
+              <tr><th>Tên</th><th>Ngày bắt đầu</th><th>Kết thúc</th><th>Điều kiện</th><th>Giảm</th><th>Số lượng</th><th></th></tr>
             </thead>
             <tbody>
               {rows.map(p => (
@@ -33,7 +33,7 @@ export default function PromotionPopup({ open, onSelect, onClose }) {
                   <td>{new Date(p.startDate).toLocaleDateString()}</td>
                   <td>{new Date(p.endDate).toLocaleDateString()}</td>
                   <td>{p.condition}</td>
-                  <td>{p.discountPercent}%</td>
+                  <td>{p.discountPercent}</td>
                   <td>{p.quantity}</td>
                   <td><button className="btn btn-sm btn-primary" onClick={() => { onSelect(p); onClose(); }}>Chọn</button></td>
                 </tr>

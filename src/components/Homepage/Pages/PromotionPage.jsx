@@ -157,7 +157,7 @@ export default function PromotionPage() {
               Điều kiện {renderSortIcon("condition")}
             </th>
             <th onClick={() => handleSort("discountPercent")} style={{ cursor: "pointer" }}>
-              Giảm (%) {renderSortIcon("discountPercent")}
+              Giảm{renderSortIcon("discountPercent")}
             </th>
             <th onClick={() => handleSort("quantity")} style={{ cursor: "pointer" }}>
               Số lượng {renderSortIcon("quantity")}
