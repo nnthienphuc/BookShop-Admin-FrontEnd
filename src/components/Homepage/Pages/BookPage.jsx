@@ -72,19 +72,23 @@ export default function BookPage() {
   };
 
   const handleSelect = (item) => {
-    const fieldMap = {
-      author: "authorId",
-      category: "categoryId",
-      publisher: "publisherId",
-    };
-    const field = fieldMap[popupType];
-
-    setForm({
-      ...form,
-      [field]: item.id,
-    });
-    setPopupType("");
+  const fieldMap = {
+    author: { idField: "authorId", nameField: "authorName" },
+    category: { idField: "categoryId", nameField: "categoryName" },
+    publisher: { idField: "publisherId", nameField: "publisherName" },
   };
+
+  const { idField, nameField } = fieldMap[popupType];
+
+  setForm({
+    ...form,
+    [idField]: item.id,
+    [nameField]: item.name, // 👈 cập nhật tên để hiển thị
+  });
+
+  setPopupType(""); // đóng popup
+};
+
 
   useEffect(() => {
     fetchBooks();
