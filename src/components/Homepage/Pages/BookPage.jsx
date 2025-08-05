@@ -20,6 +20,7 @@ export default function BookPage() {
     price: "",
     quantity: "",
     isDeleted: false,
+    description: "",
     image: null,
   });
   const [preview, setPreview] = useState(null);
@@ -108,6 +109,7 @@ export default function BookPage() {
       yearOfPublication: "",
       price: "",
       quantity: "",
+      description: "",
       isDeleted: false,
       image: null,
     });
@@ -130,6 +132,7 @@ export default function BookPage() {
       yearOfPublication: book.yearOfPublication,
       price: book.price,
       quantity: book.quantity,
+      description: book.description || "",
       isDeleted: book.isDeleted,
       image: null,
     });
@@ -158,6 +161,7 @@ export default function BookPage() {
       formData.append("yearOfPublication", form.yearOfPublication);
       formData.append("price", form.price);
       formData.append("quantity", form.quantity);
+      formData.append("description", form.description || "");
       formData.append("isDeleted", form.isDeleted);
 
       if (form.image instanceof File) {
@@ -401,6 +405,18 @@ export default function BookPage() {
                     />
                   </div>
                 ))}
+
+                <div className="col-12">
+  <label className="form-label">Mô tả</label>
+  <textarea
+    className="form-control"
+    rows={3}
+    value={form.description || ""}
+    onChange={(e) => setForm({ ...form, description: e.target.value })}
+    placeholder="Nhập mô tả sách..."
+  />
+</div>
+
 
                 <div className="col-md-6">
                   <label className="form-label">Ảnh bìa</label>
