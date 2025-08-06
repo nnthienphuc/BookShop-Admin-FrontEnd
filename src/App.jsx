@@ -14,6 +14,7 @@ import CustomerPage from './components/Homepage/Pages/CustomerPage';
 import StaffPage from './components/Homepage/Pages/StaffPage';
 import OrderPage from './components/Homepage/Pages/OrderPage';
 import StatisticsPage from './components/Homepage/Pages/StatisticsPage';
+import ChangePasswordPage from './components/Homepage/Pages/ChangePasswordPage';
 
 
 function App() {
@@ -39,6 +40,7 @@ function App() {
         <Route path="staff" element={<StaffPage />} />
         <Route path="order" element={<OrderPage />} />
         <Route path="statistics" element={<StatisticsPage />} />
+        <Route path="change-password" element={<ChangePasswordPage />} />
 
 
         {/* Add more pages here */}

@@ -11,6 +11,7 @@ const menuItems = [
   { label: 'Tác giả', path: '/admin/author' },
   { label: 'Nhà xuất bản', path: '/admin/publisher' },
   { label: 'Thống kê', path: '/admin/statistics' },
+  { label: 'Đổi mật khẩu', path: '/admin/change-password' },
   {
     label: 'Đăng xuất',
     action: () => {

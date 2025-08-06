@@ -142,62 +142,62 @@ export default function OrderPage() {
   };
 
   const handleCreateOrder = async () => {
-  // ✅ Kiểm tra hợp lệ trước khi gửi API
-  if (!addForm.customerId) {
-    alert("Vui lòng chọn khách hàng.");
-    return;
-  }
-
-  if (addForm.items.length === 0 || addForm.items.some((x) => !x.bookId)) {
-    alert("Vui lòng chọn ít nhất một sách hợp lệ.");
-    return;
-  }
-
-  const payload = {
-    customerId: addForm.customerId,
-    promotionId: addForm.promotionId || null,
-    paymentMethod: addForm.paymentMethod,
-    items: addForm.items.map((x) => ({
-      bookId: x.bookId,
-      quantity: x.quantity,
-    })),
-  };
-
-  try {
-    const res = await axiosInstance.post(API_BASE, payload);
-
-    // ✅ Nếu là MoMo và có link thanh toán
-    if (addForm.paymentMethod === "MoMo") {
-      const momoUrl = res.data?.payUrl;
-
-      if (momoUrl) {
-        // ✅ Mở tab mới với link thanh toán
-        window.open(momoUrl, "_blank");
-
-        // ✅ Vẫn hiển thị thông báo và đóng form
-        alert("Tạo đơn hàng thành công. Đã mở trang thanh toán MoMo.");
-        fetchOrders();
-        setAddModalVisible(false);
-        return;
-      } else {
-        alert("Không thể tạo liên kết thanh toán MoMo.");
-        return;
-      }
+    // ✅ Kiểm tra hợp lệ trước khi gửi API
+    if (!addForm.customerId) {
+      alert("Vui lòng chọn khách hàng.");
+      return;
     }
 
-    // ✅ Với các phương thức thanh toán khác
-    alert(res.data?.message || "Tạo đơn hàng thành công.");
-    fetchOrders();
-    setAddModalVisible(false);
-  } catch (err) {
-    const msg =
-      err.response?.data?.message ||
-      err.response?.data?.detail ||
-      err.response?.data ||
-      "Lỗi tạo đơn hàng.";
-    alert(msg);
-  }
-};
+    if (addForm.items.length === 0 || addForm.items.some((x) => !x.bookId)) {
+      alert("Vui lòng chọn ít nhất một sách hợp lệ.");
+      return;
+    }
+
+    const payload = {
+      customerId: addForm.customerId,
+      promotionId: addForm.promotionId || null,
+      paymentMethod: addForm.paymentMethod,
+      items: addForm.items.map((x) => ({
+        bookId: x.bookId,
+        quantity: x.quantity,
+      })),
+    };
+
+    try {
+      const res = await axiosInstance.post(API_BASE, payload);
+
+      // ✅ Nếu là MoMo và có link thanh toán
+      if (addForm.paymentMethod === "MoMo") {
+        const momoUrl = res.data?.payUrl;
+
+        if (momoUrl) {
+          // ✅ Mở tab mới với link thanh toán
+          window.open(momoUrl, "_blank");
+
+          // ✅ Vẫn hiển thị thông báo và đóng form
+          alert("Tạo đơn hàng thành công. Đã mở trang thanh toán MoMo.");
+          fetchOrders();
+          setAddModalVisible(false);
+          return;
+        } else {
+          alert("Không thể tạo liên kết thanh toán MoMo.");
+          return;
+        }
+      }
+
+      // ✅ Với các phương thức thanh toán khác
+      alert(res.data?.message || "Tạo đơn hàng thành công.");
+      fetchOrders();
+      setAddModalVisible(false);
+    } catch (err) {
+      const msg =
+        err.response?.data?.message ||
+        err.response?.data?.detail ||
+        err.response?.data ||
+        "Lỗi tạo đơn hàng.";
+      alert(msg);
+    }
+  };
 
   // const handleCreateOrder = async () => {
   //   try {
@@ -572,7 +572,7 @@ export default function OrderPage() {
                         0
                       );
                       const total =
-                        subtotal - (subtotal * addForm.discountPercent);
+                        subtotal - subtotal * addForm.discountPercent;
                       return total.toLocaleString() + " ₫";
                     })()}
                   </h5>
@@ -621,14 +621,20 @@ export default function OrderPage() {
                 </p>
                 <div className="mb-2">
                   <label>Trạng thái</label>
-                  <input
+                  <select
                     className="form-control"
                     value={form.status || ""}
                     onChange={(e) =>
                       setForm({ ...form, status: e.target.value })
                     }
-                  />
+                  >
+                    <option value="">-- Chọn trạng thái --</option>
+                    <option value="Thành công">Thành công</option>
+                    <option value="Đang vận chuyển">Đang vận chuyển</option>
+                    <option value="Đã hủy">Đã hủy</option>
+                  </select>
                 </div>
+
                 <div className="mb-2">
                   <label>Ghi chú</label>
                   <textarea
