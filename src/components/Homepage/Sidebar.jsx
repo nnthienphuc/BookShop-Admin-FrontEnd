@@ -1,3 +1,4 @@
+// Sidebar.jsx
 import { useLocation, useNavigate } from 'react-router-dom';
 
 const menuItems = [
@@ -25,8 +26,9 @@ export default function Sidebar() {
 
   return (
     <div style={{
-      width: 220, background: '#176264', color: '#fff', minHeight: '100vh',
-      display: 'flex', flexDirection: 'column', padding: 24
+      display: 'flex',
+      flexDirection: 'column',
+      padding: 24
     }}>
       <h2 style={{ fontWeight: 'bold', marginBottom: 36 }}>BOOK STORE 🟩</h2>
 
