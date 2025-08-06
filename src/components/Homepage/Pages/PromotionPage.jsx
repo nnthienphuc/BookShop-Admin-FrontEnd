@@ -209,7 +209,7 @@ export default function PromotionPage() {
                   { label: "Ngày bắt đầu", field: "startDate", type: "date" },
                   { label: "Ngày kết thúc", field: "endDate", type: "date" },
                   { label: "Điều kiện", field: "condition" },
-                  { label: "Giảm giá (%)", field: "discountPercent" },
+                  { label: "Giảm giá", field: "discountPercent" },
                   { label: "Số lượng", field: "quantity" },
                 ].map(({ label, field, type }) => (
                   <div key={field} className="col-12">
