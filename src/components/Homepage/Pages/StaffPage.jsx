@@ -136,7 +136,7 @@ export default function StaffPage() {
     <div className="container mt-4">
       <h2>Danh sách Nhân viên</h2>
       <div className="d-flex gap-2 mb-3">
-        <button className="btn btn-success" onClick={openAdd}>Thêm</button>
+        {/* <button className="btn btn-success" onClick={openAdd}>Thêm</button> */}
         <input
           className="form-control w-25"
           placeholder="Tìm kiếm..."
