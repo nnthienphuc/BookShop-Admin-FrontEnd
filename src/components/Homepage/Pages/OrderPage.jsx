@@ -283,7 +283,7 @@ export default function OrderPage() {
               "customerPhone",
               "createdTime",
               "status",
-              "shippingFee",
+              // "shippingFee",
               "totalAmount",
               "isDeleted",
             ].map((key, i) => (
@@ -299,7 +299,7 @@ export default function OrderPage() {
                     "SĐT Khách",
                     "Ngày",
                     "Trạng thái",
-                    "Phí ship",
+                    // "Phí ship",
                     "Tổng tiền",
                     "Đã xoá",
                   ][i]
@@ -326,7 +326,7 @@ export default function OrderPage() {
                 <td>{o.customerPhone}</td>
                 <td>{new Date(o.createdTime).toLocaleString()}</td>
                 <td>{o.status}</td>
-                <td>{o.shippingFee}</td>
+                {/* <td>{o.shippingFee}</td> */}
                 <td>{o.totalAmount}</td>
                 <td>
                   <input type="checkbox" checked={o.isDeleted} readOnly />
