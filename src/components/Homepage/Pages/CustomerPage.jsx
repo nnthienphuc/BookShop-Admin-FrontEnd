@@ -22,11 +22,17 @@ export default function CustomerPage() {
     isDeleted: false,
   });
 
+  // --- PHÂN TRANG (client-side) ---
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
+  // ---------------------------------
+
   const fetchCustomers = async () => {
     try {
       const url = search ? `${API_BASE}/search?keyword=${search}` : API_BASE;
       const res = await axiosInstance.get(url);
       setCustomers(res.data);
+      setPage(1); // mỗi lần tìm kiếm quay lại trang 1
     } catch (err) {
       alert("Không thể tải danh sách khách hàng.");
     }
@@ -111,12 +117,13 @@ export default function CustomerPage() {
         ? { key, direction: prev.direction === "asc" ? "desc" : "asc" }
         : { key, direction: "asc" }
     );
+    setPage(1); // sắp xếp lại cũng về trang 1
   };
 
   const renderSortIcon = (key) => {
-  if (sortConfig.key !== key) return null;
-  return sortConfig.direction === "asc" ? " ▲" : " ▼";
-};
+    if (sortConfig.key !== key) return null;
+    return sortConfig.direction === "asc" ? " ▲" : " ▼";
+  };
 
   const sortedCustomers = React.useMemo(() => {
     const sortable = [...customers];
@@ -128,6 +135,10 @@ export default function CustomerPage() {
         if (sortConfig.key === "gender") {
           aValue = aValue ? 1 : 0;
           bValue = bValue ? 1 : 0;
+        } else if (sortConfig.key === "dateOfBirth") {
+          // Chuẩn hoá ngày để so sánh ổn định
+          aValue = new Date(aValue || 0).getTime();
+          bValue = new Date(bValue || 0).getTime();
         }
 
         if (aValue < bValue) return sortConfig.direction === "asc" ? -1 : 1;
@@ -138,60 +149,115 @@ export default function CustomerPage() {
     return sortable;
   }, [customers, sortConfig]);
 
+  // --- TÍNH TOÁN PHÂN TRANG ---
+  const total = sortedCustomers.length;
+  const totalPages = Math.max(1, Math.ceil(total / pageSize));
+  const safePage = Math.min(page, totalPages);
+  const start = (safePage - 1) * pageSize;
+  const end = start + pageSize;
+  const pageItems = sortedCustomers.slice(start, end);
+  // -----------------------------
+
   return (
     <div className="container mt-4">
       <h2>Danh sách Khách hàng</h2>
       <div className="d-flex gap-2 mb-3">
-        <button className="btn btn-success" onClick={openAdd}>Thêm</button>
+        <button className="btn btn-success" onClick={openAdd}>
+          Thêm
+        </button>
         <input
           className="form-control w-25"
           placeholder="Tìm kiếm..."
           value={search}
           onChange={(e) => setSearch(e.target.value)}
         />
+        {/* Chọn kích thước trang (client-side) */}
+        <div className="ms-auto d-flex align-items-center gap-2">
+          <span>Kích thước trang:</span>
+          <select
+            className="form-select w-auto"
+            value={pageSize}
+            onChange={(e) => {
+              setPageSize(Number(e.target.value));
+              setPage(1);
+            }}
+          >
+            {[5, 10, 20, 50, 100].map((n) => (
+              <option key={n} value={n}>
+                {n}
+              </option>
+            ))}
+          </select>
+        </div>
       </div>
 
       <table className="table table-bordered table-hover">
         <thead>
-  <tr>
-    <th>#</th>
-    <th onClick={() => handleSort("familyName")} style={{ cursor: "pointer" }}>
-      Họ {renderSortIcon("familyName")}
-    </th>
-    <th onClick={() => handleSort("givenName")} style={{ cursor: "pointer" }}>
-      Tên {renderSortIcon("givenName")}
-    </th>
-    <th onClick={() => handleSort("dateOfBirth")} style={{ cursor: "pointer" }}>
-      Ngày sinh {renderSortIcon("dateOfBirth")}
-    </th>
-    <th onClick={() => handleSort("gender")} style={{ cursor: "pointer" }}>
-      Giới tính {renderSortIcon("gender")}
-    </th>
-    <th onClick={() => handleSort("phone")} style={{ cursor: "pointer" }}>
-      Điện thoại {renderSortIcon("phone")}
-    </th>
-    <th onClick={() => handleSort("email")} style={{ cursor: "pointer" }}>
-      Email {renderSortIcon("email")}
-    </th>
-    <th onClick={() => handleSort("address")} style={{ cursor: "pointer" }}>
-      Địa chỉ {renderSortIcon("address")}
-    </th>
-    <th onClick={() => handleSort("isDeleted")} style={{ cursor: "pointer" }}>
-      Đã xoá {renderSortIcon("isDeleted")}
-    </th>
-    <th>Thao tác</th>
-  </tr>
-</thead>
+          <tr>
+            <th>#</th>
+            <th
+              onClick={() => handleSort("familyName")}
+              style={{ cursor: "pointer" }}
+            >
+              Họ {renderSortIcon("familyName")}
+            </th>
+            <th
+              onClick={() => handleSort("givenName")}
+              style={{ cursor: "pointer" }}
+            >
+              Tên {renderSortIcon("givenName")}
+            </th>
+            <th
+              onClick={() => handleSort("dateOfBirth")}
+              style={{ cursor: "pointer" }}
+            >
+              Ngày sinh {renderSortIcon("dateOfBirth")}
+            </th>
+            <th
+              onClick={() => handleSort("gender")}
+              style={{ cursor: "pointer" }}
+            >
+              Giới tính {renderSortIcon("gender")}
+            </th>
+            <th
+              onClick={() => handleSort("phone")}
+              style={{ cursor: "pointer" }}
+            >
+              Điện thoại {renderSortIcon("phone")}
+            </th>
+            <th
+              onClick={() => handleSort("email")}
+              style={{ cursor: "pointer" }}
+            >
+              Email {renderSortIcon("email")}
+            </th>
+            <th
+              onClick={() => handleSort("address")}
+              style={{ cursor: "pointer" }}
+            >
+              Địa chỉ {renderSortIcon("address")}
+            </th>
+            <th
+              onClick={() => handleSort("isDeleted")}
+              style={{ cursor: "pointer" }}
+            >
+              Đã xoá {renderSortIcon("isDeleted")}
+            </th>
+            <th>Thao tác</th>
+          </tr>
+        </thead>
 
         <tbody>
-          {sortedCustomers.length === 0 ? (
+          {pageItems.length === 0 ? (
             <tr>
-              <td colSpan={10} className="text-center">Không có dữ liệu</td>
+              <td colSpan={10} className="text-center">
+                Không có dữ liệu
+              </td>
             </tr>
           ) : (
-            sortedCustomers.map((c, i) => (
+            pageItems.map((c, i) => (
               <tr key={c.id}>
-                <td>{i + 1}</td>
+                <td>{start + i + 1}</td>
                 <td>{c.familyName}</td>
                 <td>{c.givenName}</td>
                 <td>{c.dateOfBirth}</td>
@@ -199,10 +265,22 @@ export default function CustomerPage() {
                 <td>{c.phone}</td>
                 <td>{c.email || "-"}</td>
                 <td>{c.address}</td>
-                <td><input type="checkbox" checked={c.isDeleted} readOnly /></td>
                 <td>
-                  <button className="btn btn-info btn-sm me-2" onClick={() => openEdit(c)}>Sửa</button>
-                  <button className="btn btn-danger btn-sm" onClick={() => setDeleteId(c.id)}>Xoá</button>
+                  <input type="checkbox" checked={c.isDeleted} readOnly />
+                </td>
+                <td>
+                  <button
+                    className="btn btn-info btn-sm me-2"
+                    onClick={() => openEdit(c)}
+                  >
+                    Sửa
+                  </button>
+                  <button
+                    className="btn btn-danger btn-sm"
+                    onClick={() => setDeleteId(c.id)}
+                  >
+                    Xoá
+                  </button>
                 </td>
               </tr>
             ))
@@ -210,14 +288,89 @@ export default function CustomerPage() {
         </tbody>
       </table>
 
+      {/* Điều hướng phân trang */}
+      <div className="d-flex justify-content-between align-items-center mt-3">
+        <div>
+          Hiển thị <strong>{total === 0 ? 0 : start + 1}</strong>–
+          <strong>{Math.min(end, total)}</strong> / <strong>{total}</strong> bản
+          ghi
+        </div>
+        <div className="btn-group">
+          <button
+            className="btn btn-outline-secondary"
+            disabled={safePage === 1}
+            onClick={() => setPage((p) => Math.max(1, p - 1))}
+          >
+            ‹ Trước
+          </button>
+
+          {(() => {
+            const makePages = (total, current) => {
+              const MAX_SIMPLE = 7;
+              if (total <= MAX_SIMPLE) {
+                return Array.from({ length: total }, (_, i) => i + 1);
+              }
+              const pages = [];
+              const delta = 1; // số trang kề 2 bên trang hiện tại
+
+              const left = Math.max(2, current - delta);
+              const right = Math.min(total - 1, current + delta);
+
+              pages.push(1);
+              if (left > 2) pages.push("…");
+              for (let p = left; p <= right; p++) pages.push(p);
+              if (right < total - 1) pages.push("…");
+              pages.push(total);
+
+              return pages;
+            };
+
+            return makePages(totalPages, safePage).map((p, idx) =>
+              p === "…" ? (
+                <button
+                  key={`e-${idx}`}
+                  className="btn btn-outline-secondary"
+                  disabled
+                >
+                  …
+                </button>
+              ) : (
+                <button
+                  key={p}
+                  className={`btn ${
+                    p === safePage ? "btn-primary" : "btn-outline-secondary"
+                  }`}
+                  onClick={() => setPage(p)}
+                >
+                  {p}
+                </button>
+              )
+            );
+          })()}
+
+          <button
+            className="btn btn-outline-secondary"
+            disabled={safePage === totalPages}
+            onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+          >
+            Sau ›
+          </button>
+        </div>
+      </div>
+
       {/* Modal Thêm/Sửa */}
       {modalVisible && (
         <div className="modal show fade d-block" tabIndex="-1">
           <div className="modal-dialog">
             <div className="modal-content">
               <div className="modal-header">
-                <h5 className="modal-title">{isEdit ? "Sửa" : "Thêm"} khách hàng</h5>
-                <button className="btn-close" onClick={() => setModalVisible(false)}></button>
+                <h5 className="modal-title">
+                  {isEdit ? "Sửa" : "Thêm"} khách hàng
+                </h5>
+                <button
+                  className="btn-close"
+                  onClick={() => setModalVisible(false)}
+                ></button>
               </div>
               <div className="modal-body row g-3">
                 {[
@@ -233,7 +386,9 @@ export default function CustomerPage() {
                       type={type || "text"}
                       className="form-control"
                       value={form[name] || ""}
-                      onChange={(e) => setForm({ ...form, [name]: e.target.value })}
+                      onChange={(e) =>
+                        setForm({ ...form, [name]: e.target.value })
+                      }
                     />
                   </div>
                 ))}
@@ -243,7 +398,9 @@ export default function CustomerPage() {
                   <select
                     className="form-select"
                     value={form.gender}
-                    onChange={(e) => setForm({ ...form, gender: e.target.value === "true" })}
+                    onChange={(e) =>
+                      setForm({ ...form, gender: e.target.value === "true" })
+                    }
                   >
                     <option value="false">Nam</option>
                     <option value="true">Nữ</option>
@@ -255,13 +412,22 @@ export default function CustomerPage() {
                   <input
                     type="checkbox"
                     checked={form.isDeleted}
-                    onChange={(e) => setForm({ ...form, isDeleted: e.target.checked })}
+                    onChange={(e) =>
+                      setForm({ ...form, isDeleted: e.target.checked })
+                    }
                   />
                 </div>
               </div>
               <div className="modal-footer">
-                <button className="btn btn-secondary" onClick={() => setModalVisible(false)}>Huỷ</button>
-                <button className="btn btn-primary" onClick={handleSave}>Lưu</button>
+                <button
+                  className="btn btn-secondary"
+                  onClick={() => setModalVisible(false)}
+                >
+                  Huỷ
+                </button>
+                <button className="btn btn-primary" onClick={handleSave}>
+                  Lưu
+                </button>
               </div>
             </div>
           </div>
@@ -275,14 +441,24 @@ export default function CustomerPage() {
             <div className="modal-content">
               <div className="modal-header">
                 <h5 className="modal-title">Xác nhận xoá</h5>
-                <button className="btn-close" onClick={() => setDeleteId(null)}></button>
+                <button
+                  className="btn-close"
+                  onClick={() => setDeleteId(null)}
+                ></button>
               </div>
               <div className="modal-body">
                 <p>Bạn có chắc chắn muốn xoá khách hàng này?</p>
               </div>
               <div className="modal-footer">
-                <button className="btn btn-secondary" onClick={() => setDeleteId(null)}>Huỷ</button>
-                <button className="btn btn-danger" onClick={handleDelete}>Xoá</button>
+                <button
+                  className="btn btn-secondary"
+                  onClick={() => setDeleteId(null)}
+                >
+                  Huỷ
+                </button>
+                <button className="btn btn-danger" onClick={handleDelete}>
+                  Xoá
+                </button>
               </div>
             </div>
           </div>

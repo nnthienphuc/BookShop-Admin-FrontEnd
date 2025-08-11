@@ -33,6 +33,11 @@ export default function OrderPage() {
   const [detailPopupOrderId, setDetailPopupOrderId] = useState(null);
   const [orderItems, setOrderItems] = useState([]);
 
+  // --- PHÂN TRANG (client-side) ---
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
+  // ---------------------------------
+
   useEffect(() => {
     fetchOrders();
   }, [search]);
@@ -42,6 +47,7 @@ export default function OrderPage() {
       const url = search ? `${API_BASE}/search?keyword=${search}` : API_BASE;
       const res = await axiosInstance.get(url);
       setOrders(res.data);
+      setPage(1); // mỗi lần tìm kiếm, quay lại trang 1
     } catch {
       alert("Không thể tải danh sách đơn hàng.");
     }
@@ -53,6 +59,7 @@ export default function OrderPage() {
         ? { key, direction: prev.direction === "asc" ? "desc" : "asc" }
         : { key, direction: "asc" }
     );
+    setPage(1); // sắp xếp lại cũng về trang 1
   };
 
   const renderSortIcon = (key) =>
@@ -85,6 +92,15 @@ export default function OrderPage() {
     }
     return arr;
   }, [orders, sortConfig]);
+
+  // --- TÍNH TOÁN PHÂN TRANG ---
+  const total = sortedOrders.length;
+  const totalPages = Math.max(1, Math.ceil(total / pageSize));
+  const safePage = Math.min(page, totalPages);
+  const start = (safePage - 1) * pageSize;
+  const end = start + pageSize;
+  const pageItems = sortedOrders.slice(start, end);
+  // ----------------------------
 
   const openAdd = () => {
     setAddForm({
@@ -142,12 +158,10 @@ export default function OrderPage() {
   };
 
   const handleCreateOrder = async () => {
-    // ✅ Kiểm tra hợp lệ trước khi gửi API
     if (!addForm.customerId) {
       alert("Vui lòng chọn khách hàng.");
       return;
     }
-
     if (addForm.items.length === 0 || addForm.items.some((x) => !x.bookId)) {
       alert("Vui lòng chọn ít nhất một sách hợp lệ.");
       return;
@@ -166,15 +180,10 @@ export default function OrderPage() {
     try {
       const res = await axiosInstance.post(API_BASE, payload);
 
-      // ✅ Nếu là MoMo và có link thanh toán
       if (addForm.paymentMethod === "MoMo") {
         const momoUrl = res.data?.payUrl;
-
         if (momoUrl) {
-          // ✅ Mở tab mới với link thanh toán
           window.open(momoUrl, "_blank");
-
-          // ✅ Vẫn hiển thị thông báo và đóng form
           alert("Tạo đơn hàng thành công. Đã mở trang thanh toán MoMo.");
           fetchOrders();
           setAddModalVisible(false);
@@ -185,7 +194,6 @@ export default function OrderPage() {
         }
       }
 
-      // ✅ Với các phương thức thanh toán khác
       alert(res.data?.message || "Tạo đơn hàng thành công.");
       fetchOrders();
       setAddModalVisible(false);
@@ -199,28 +207,6 @@ export default function OrderPage() {
     }
   };
 
-  // const handleCreateOrder = async () => {
-  //   try {
-  //     const payload = {
-  //       customerId: addForm.customerId,
-  //       promotionId: addForm.promotionId || null,
-  //       paymentMethod: addForm.paymentMethod,
-  //       items: addForm.items.map(x => ({ bookId: x.bookId, quantity: x.quantity }))
-  //     };
-  //     const res = await axiosInstance.post(API_BASE, payload);
-  //     alert(res.data?.message || "Tạo đơn hàng thành công");
-  //     fetchOrders();
-  //     setAddModalVisible(false);
-  //   } catch (err) {
-  //     const msg =
-  //       err.response?.data?.message ||
-  //       err.response?.data?.detail ||
-  //       err.response?.data ||
-  //       "Lỗi tạo đơn hàng.";
-  //     alert(msg);
-  //   }
-  // };
-
   const handleUpdateOrder = async () => {
     try {
       const payload = {
@@ -233,6 +219,11 @@ export default function OrderPage() {
       fetchOrders();
       setModalVisible(false);
     } catch (err) {
+      const status = err?.response?.status;
+      if (status === 401 || status === 403) {
+        alert("Bạn không có quyền sửa đơn hàng này.");
+        return;
+      }
       alert(err.response?.data?.message || "Lỗi cập nhật đơn hàng");
     }
   };
@@ -244,6 +235,11 @@ export default function OrderPage() {
       fetchOrders();
       setDeleteId(null);
     } catch (err) {
+      const status = err?.response?.status;
+      if (status === 401 || status === 403) {
+        alert("Bạn không có quyền xoá đơn hàng này.");
+        return;
+      }
       alert(err.response?.data?.message || "Xóa thất bại");
     }
   };
@@ -271,6 +267,24 @@ export default function OrderPage() {
           className="form-control w-25"
           onChange={(e) => setSearch(e.target.value)}
         />
+        {/* Chọn kích thước trang (client-side) */}
+        <div className="ms-auto d-flex align-items-center gap-2">
+          <span>Kích thước trang:</span>
+          <select
+            className="form-select w-auto"
+            value={pageSize}
+            onChange={(e) => {
+              setPageSize(Number(e.target.value));
+              setPage(1);
+            }}
+          >
+            {[5, 10, 20, 50, 100].map((n) => (
+              <option key={n} value={n}>
+                {n}
+              </option>
+            ))}
+          </select>
+        </div>
       </div>
 
       <table className="table table-bordered table-hover">
@@ -315,16 +329,16 @@ export default function OrderPage() {
           </tr>
         </thead>
         <tbody>
-          {sortedOrders.length === 0 ? (
+          {pageItems.length === 0 ? (
             <tr>
               <td colSpan={10} className="text-center">
                 Không có dữ liệu
               </td>
             </tr>
           ) : (
-            sortedOrders.map((o, i) => (
+            pageItems.map((o, i) => (
               <tr key={o.id}>
-                <td>{i + 1}</td>
+                <td>{start + i + 1}</td>
                 <td>{o.staffName}</td>
                 <td>{o.customerName}</td>
                 <td>{o.customerPhone}</td>
@@ -367,6 +381,76 @@ export default function OrderPage() {
           )}
         </tbody>
       </table>
+
+      {/* Điều hướng phân trang */}
+      <div className="d-flex justify-content-between align-items-center mt-3">
+        <div>
+          Hiển thị <strong>{total === 0 ? 0 : start + 1}</strong>–
+          <strong>{Math.min(end, total)}</strong> / <strong>{total}</strong> bản
+          ghi
+        </div>
+        <div className="btn-group">
+          <button
+            className="btn btn-outline-secondary"
+            disabled={safePage === 1}
+            onClick={() => setPage((p) => Math.max(1, p - 1))}
+          >
+            ‹ Trước
+          </button>
+
+          {(() => {
+            const makePages = (total, current) => {
+              const MAX_SIMPLE = 7;
+              if (total <= MAX_SIMPLE) {
+                return Array.from({ length: total }, (_, i) => i + 1);
+              }
+              const pages = [];
+              const delta = 1; // số trang kề 2 bên trang hiện tại
+
+              const left = Math.max(2, current - delta);
+              const right = Math.min(total - 1, current + delta);
+
+              pages.push(1);
+              if (left > 2) pages.push("…");
+              for (let p = left; p <= right; p++) pages.push(p);
+              if (right < total - 1) pages.push("…");
+              pages.push(total);
+
+              return pages;
+            };
+
+            return makePages(totalPages, safePage).map((p, idx) =>
+              p === "…" ? (
+                <button
+                  key={`e-${idx}`}
+                  className="btn btn-outline-secondary"
+                  disabled
+                >
+                  …
+                </button>
+              ) : (
+                <button
+                  key={p}
+                  className={`btn ${
+                    p === safePage ? "btn-primary" : "btn-outline-secondary"
+                  }`}
+                  onClick={() => setPage(p)}
+                >
+                  {p}
+                </button>
+              )
+            );
+          })()}
+
+          <button
+            className="btn btn-outline-secondary"
+            disabled={safePage === totalPages}
+            onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+          >
+            Sau ›
+          </button>
+        </div>
+      </div>
 
       {/* Modal chi tiết đơn hàng */}
       {detailPopupOrderId && (

@@ -11,6 +11,11 @@ export default function StaffPage() {
   const [deleteId, setDeleteId] = useState(null);
   const [sortConfig, setSortConfig] = useState({ key: null, direction: "asc" });
 
+  // --- PHÂN TRANG (client-side) ---
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
+  // ---------------------------------
+
   const [form, setForm] = useState({
     id: "",
     familyName: "",
@@ -26,12 +31,25 @@ export default function StaffPage() {
     isDeleted: false,
   });
 
+  // --- helper chuyển trang khi không có quyền ---
+  const redirectNoPermission = () => {
+    alert("Bạn không có quyền truy cập vào trang này.");
+    // đổi path nếu route BookPage của bạn khác
+    window.location.href = "/admin/books";
+  };
+
   const fetchStaffs = async () => {
     try {
       const url = search ? `${API_BASE}/search?keyword=${search}` : API_BASE;
       const res = await axiosInstance.get(url);
       setStaffs(res.data);
+      setPage(1); // mỗi lần tìm kiếm, quay về trang 1
     } catch (err) {
+      const status = err?.response?.status;
+      if (status === 401 || status === 403) {
+        redirectNoPermission();
+        return;
+      }
       alert("Không thể tải danh sách nhân viên.");
     }
   };
@@ -80,6 +98,11 @@ export default function StaffPage() {
       setModalVisible(false);
       fetchStaffs();
     } catch (err) {
+      const status = err?.response?.status;
+      if (status === 401 || status === 403) {
+        redirectNoPermission();
+        return;
+      }
       alert(err.response?.data?.message || "Lỗi khi lưu nhân viên.");
     }
   };
@@ -89,6 +112,11 @@ export default function StaffPage() {
       const res = await axiosInstance.delete(`${API_BASE}/${deleteId}`);
       alert(res.data?.message || "Xóa thành công.");
     } catch (err) {
+      const status = err?.response?.status;
+      if (status === 401 || status === 403) {
+        redirectNoPermission();
+        return;
+      }
       alert(err.response?.data?.message || "Xóa thất bại.");
     } finally {
       setDeleteId(null);
@@ -102,6 +130,7 @@ export default function StaffPage() {
         ? { key, direction: prev.direction === "asc" ? "desc" : "asc" }
         : { key, direction: "asc" }
     );
+    setPage(1); // sắp xếp lại thì về trang 1
   };
 
   const renderSortIcon = (key) => {
@@ -122,6 +151,9 @@ export default function StaffPage() {
         } else if (sortConfig.key === "dateOfBirth") {
           aValue = new Date(aValue);
           bValue = new Date(bValue);
+        } else {
+          aValue = aValue?.toString().toLowerCase();
+          bValue = bValue?.toString().toLowerCase();
         }
 
         if (aValue < bValue) return sortConfig.direction === "asc" ? -1 : 1;
@@ -131,6 +163,15 @@ export default function StaffPage() {
     }
     return sortable;
   }, [staffs, sortConfig]);
+
+  // --- TÍNH TOÁN PHÂN TRANG ---
+  const total = sortedStaffs.length;
+  const totalPages = Math.max(1, Math.ceil(total / pageSize));
+  const safePage = Math.min(page, totalPages);
+  const start = (safePage - 1) * pageSize;
+  const end = start + pageSize;
+  const pageItems = sortedStaffs.slice(start, end);
+  // -----------------------------
 
   return (
     <div className="container mt-4">
@@ -143,6 +184,17 @@ export default function StaffPage() {
           value={search}
           onChange={(e) => setSearch(e.target.value)}
         />
+        {/* Chọn kích thước trang */}
+        <div className="ms-auto d-flex align-items-center gap-2">
+          <span>Kích thước trang:</span>
+          <select
+            className="form-select w-auto"
+            value={pageSize}
+            onChange={(e) => { setPageSize(Number(e.target.value)); setPage(1); }}
+          >
+            {[5, 10, 20, 50, 100].map(n => <option key={n} value={n}>{n}</option>)}
+          </select>
+        </div>
       </div>
 
       <table className="table table-bordered table-hover">
@@ -170,14 +222,14 @@ export default function StaffPage() {
           </tr>
         </thead>
         <tbody>
-          {sortedStaffs.length === 0 ? (
+          {pageItems.length === 0 ? (
             <tr>
               <td colSpan={13} className="text-center">Không có dữ liệu</td>
             </tr>
           ) : (
-            sortedStaffs.map((s, i) => (
+            pageItems.map((s, i) => (
               <tr key={s.id}>
-                <td>{i + 1}</td>
+                <td>{start + i + 1}</td>
                 <td>{s.familyName}</td>
                 <td>{s.givenName}</td>
                 <td>{s.dateOfBirth}</td>
@@ -198,6 +250,68 @@ export default function StaffPage() {
           )}
         </tbody>
       </table>
+
+      {/* Điều hướng phân trang (trượt + …) */}
+      <div className="d-flex justify-content-between align-items-center mt-3">
+        <div>
+          Hiển thị <strong>{total === 0 ? 0 : start + 1}</strong>–<strong>{Math.min(end, total)}</strong> / <strong>{total}</strong> bản ghi
+        </div>
+        <div className="btn-group">
+          <button
+            className="btn btn-outline-secondary"
+            disabled={safePage === 1}
+            onClick={() => setPage((p) => Math.max(1, p - 1))}
+          >
+            ‹ Trước
+          </button>
+
+          {(() => {
+            const makePages = (totalP, current) => {
+              const MAX_SIMPLE = 7;
+              if (totalP <= MAX_SIMPLE) {
+                return Array.from({ length: totalP }, (_, i) => i + 1);
+              }
+              const pages = [];
+              const delta = 1; // số trang kề 2 bên trang hiện tại
+
+              const left = Math.max(2, current - delta);
+              const right = Math.min(totalP - 1, current + delta);
+
+              pages.push(1);
+              if (left > 2) pages.push("…");
+              for (let p = left; p <= right; p++) pages.push(p);
+              if (right < totalP - 1) pages.push("…");
+              pages.push(totalP);
+
+              return pages;
+            };
+
+            return makePages(totalPages, safePage).map((p, idx) =>
+              p === "…" ? (
+                <button key={`e-${idx}`} className="btn btn-outline-secondary" disabled>
+                  …
+                </button>
+              ) : (
+                <button
+                  key={p}
+                  className={`btn ${p === safePage ? "btn-primary" : "btn-outline-secondary"}`}
+                  onClick={() => setPage(p)}
+                >
+                  {p}
+                </button>
+              )
+            );
+          })()}
+
+          <button
+            className="btn btn-outline-secondary"
+            disabled={safePage === totalPages}
+            onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+          >
+            Sau ›
+          </button>
+        </div>
+      </div>
 
       {/* Modal thêm/sửa */}
       {modalVisible && (

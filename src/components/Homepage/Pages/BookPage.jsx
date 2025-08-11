@@ -33,6 +33,11 @@ export default function BookPage() {
   const [popupType, setPopupType] = useState("");
   const [popupData, setPopupData] = useState([]);
 
+  // ---- PHÂN TRANG (client-side) ----
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
+  // -----------------------------------
+
   const fetchBooks = async () => {
     try {
       const url = search ? `${API_BASE}/search?keyword=${search}` : API_BASE;
@@ -52,6 +57,8 @@ export default function BookPage() {
       }
 
       setBooks(data);
+      // Mỗi lần tìm kiếm/sắp xếp xong thì quay về trang 1
+      setPage(1);
     } catch (err) {
       alert("Không thể tải sách!");
     }
@@ -73,27 +80,26 @@ export default function BookPage() {
   };
 
   const handleSelect = (item) => {
-  const fieldMap = {
-    author: { idField: "authorId", nameField: "authorName" },
-    category: { idField: "categoryId", nameField: "categoryName" },
-    publisher: { idField: "publisherId", nameField: "publisherName" },
+    const fieldMap = {
+      author: { idField: "authorId", nameField: "authorName" },
+      category: { idField: "categoryId", nameField: "categoryName" },
+      publisher: { idField: "publisherId", nameField: "publisherName" },
+    };
+
+    const { idField, nameField } = fieldMap[popupType];
+
+    setForm({
+      ...form,
+      [idField]: item.id,
+      [nameField]: item.name,
+    });
+
+    setPopupType("");
   };
-
-  const { idField, nameField } = fieldMap[popupType];
-
-  setForm({
-    ...form,
-    [idField]: item.id,
-    [nameField]: item.name, // 👈 cập nhật tên để hiển thị
-  });
-
-  setPopupType(""); // đóng popup
-};
-
 
   useEffect(() => {
     fetchBooks();
-  }, [search, sortConfig]);
+  }, [search, sortConfig]); // giữ nguyên
 
   const openAdd = () => {
     setForm({
@@ -152,7 +158,6 @@ export default function BookPage() {
 
       const formData = new FormData();
 
-      // Chỉ append những trường cần thiết (id)
       formData.append("isbn", form.isbn);
       formData.append("title", form.title);
       formData.append("categoryId", form.categoryId);
@@ -207,6 +212,15 @@ export default function BookPage() {
     return sortConfig.direction === "asc" ? "▲" : "▼";
   };
 
+  // ---- TÍNH TOÁN PHÂN TRANG (client-side) ----
+  const total = books.length;
+  const totalPages = Math.max(1, Math.ceil(total / pageSize));
+  const safePage = Math.min(page, totalPages); // phòng trường hợp total giảm
+  const start = (safePage - 1) * pageSize;
+  const end = start + pageSize;
+  const pageItems = books.slice(start, end);
+  // --------------------------------------------
+
   return (
     <div className="container mt-4">
       <h2>Danh sách sách</h2>
@@ -220,6 +234,24 @@ export default function BookPage() {
           onChange={(e) => setSearch(e.target.value)}
           placeholder="Tìm kiếm..."
         />
+        {/* Chọn kích thước trang (không đổi API) */}
+        <div className="ms-auto d-flex align-items-center gap-2">
+          <span>Kích thước trang:</span>
+          <select
+            className="form-select w-auto"
+            value={pageSize}
+            onChange={(e) => {
+              setPageSize(Number(e.target.value));
+              setPage(1);
+            }}
+          >
+            {[5, 10, 20, 50, 100].map((n) => (
+              <option key={n} value={n}>
+                {n}
+              </option>
+            ))}
+          </select>
+        </div>
       </div>
 
       <table className="table table-bordered table-hover">
@@ -285,16 +317,16 @@ export default function BookPage() {
           </tr>
         </thead>
         <tbody>
-          {books.length === 0 ? (
+          {pageItems.length === 0 ? (
             <tr>
               <td colSpan={12} className="text-center">
                 Không có dữ liệu
               </td>
             </tr>
           ) : (
-            books.map((b, i) => (
+            pageItems.map((b, i) => (
               <tr key={b.id}>
-                <td>{i + 1}</td>
+                <td>{start + i + 1}</td>
                 <td>{b.isbn}</td>
                 <td>{b.title}</td>
                 <td>{b.authorName}</td>
@@ -334,6 +366,76 @@ export default function BookPage() {
           )}
         </tbody>
       </table>
+
+      {/* Điều hướng phân trang */}
+      <div className="d-flex justify-content-between align-items-center mt-3">
+        <div>
+          Hiển thị <strong>{total === 0 ? 0 : start + 1}</strong>–
+          <strong>{Math.min(end, total)}</strong> / <strong>{total}</strong> bản
+          ghi
+        </div>
+        <div className="btn-group">
+          <button
+            className="btn btn-outline-secondary"
+            disabled={safePage === 1}
+            onClick={() => setPage((p) => Math.max(1, p - 1))}
+          >
+            ‹ Trước
+          </button>
+
+          {(() => {
+            const makePages = (total, current) => {
+              const MAX_SIMPLE = 7;
+              if (total <= MAX_SIMPLE) {
+                return Array.from({ length: total }, (_, i) => i + 1);
+              }
+              const pages = [];
+              const delta = 1; // số trang kề 2 bên trang hiện tại
+
+              const left = Math.max(2, current - delta);
+              const right = Math.min(total - 1, current + delta);
+
+              pages.push(1);
+              if (left > 2) pages.push("…");
+              for (let p = left; p <= right; p++) pages.push(p);
+              if (right < total - 1) pages.push("…");
+              pages.push(total);
+
+              return pages;
+            };
+
+            return makePages(totalPages, safePage).map((p, idx) =>
+              p === "…" ? (
+                <button
+                  key={`e-${idx}`}
+                  className="btn btn-outline-secondary"
+                  disabled
+                >
+                  …
+                </button>
+              ) : (
+                <button
+                  key={p}
+                  className={`btn ${
+                    p === safePage ? "btn-primary" : "btn-outline-secondary"
+                  }`}
+                  onClick={() => setPage(p)}
+                >
+                  {p}
+                </button>
+              )
+            );
+          })()}
+
+          <button
+            className="btn btn-outline-secondary"
+            disabled={safePage === totalPages}
+            onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+          >
+            Sau ›
+          </button>
+        </div>
+      </div>
 
       {/** Modal thêm/sửa */}
       {modalVisible && (
@@ -407,16 +509,17 @@ export default function BookPage() {
                 ))}
 
                 <div className="col-12">
-  <label className="form-label">Mô tả</label>
-  <textarea
-    className="form-control"
-    rows={3}
-    value={form.description || ""}
-    onChange={(e) => setForm({ ...form, description: e.target.value })}
-    placeholder="Nhập mô tả sách..."
-  />
-</div>
-
+                  <label className="form-label">Mô tả</label>
+                  <textarea
+                    className="form-control"
+                    rows={3}
+                    value={form.description || ""}
+                    onChange={(e) =>
+                      setForm({ ...form, description: e.target.value })
+                    }
+                    placeholder="Nhập mô tả sách..."
+                  />
+                </div>
 
                 <div className="col-md-6">
                   <label className="form-label">Ảnh bìa</label>

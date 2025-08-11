@@ -16,6 +16,14 @@ export default function StatisticsPage() {
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
   const [growthData, setGrowthData] = useState({});
 
+  // --- chỉ thêm: helper redirect khi không có quyền ---
+  const redirectToBooks = () => {
+    alert("Bạn không có quyền truy cập vào trang này.");
+    // đổi đường dẫn này cho đúng route BookPage của bạn nếu khác
+    window.location.href = "/admin/books";
+  };
+  // ----------------------------------------------------
+
   const fetchStatistics = async () => {
     try {
       const params = {};
@@ -30,6 +38,11 @@ export default function StatisticsPage() {
         revenueByDate: res.data?.revenueByDate ?? {}
       });
     } catch (err) {
+      const status = err?.response?.status;
+      if (status === 401 || status === 403) {
+        redirectToBooks();
+        return;
+      }
       alert("Lỗi tải dữ liệu thống kê.");
     }
   };
@@ -39,6 +52,11 @@ export default function StatisticsPage() {
       const res = await axiosInstance.get(`http://localhost:5286/api/admin/statistics/growth?year=${year}`);
       setGrowthData(res.data);
     } catch (err) {
+      // const status = err?.response?.status;
+      // if (status === 401 || status === 403) {
+      //   redirectToBooks();
+      //   return;
+      // }
       console.error("Lỗi tải biểu đồ tăng trưởng", err);
     }
   };

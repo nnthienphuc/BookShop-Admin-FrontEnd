@@ -21,10 +21,16 @@ export default function PromotionPage() {
   const [search, setSearch] = useState("");
   const [sortConfig, setSortConfig] = useState({ key: null, direction: "asc" });
 
+  // --- PHÂN TRANG (client-side) ---
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
+  // ---------------------------------
+
   const fetchPromotions = async () => {
     const url = search ? `${API_BASE}/search?keyword=${search}` : API_BASE;
     const res = await axiosInstance.get(url);
     setPromotions(res.data);
+    setPage(1); // mỗi lần tìm kiếm quay về trang 1
   };
 
   useEffect(() => {
@@ -92,6 +98,7 @@ export default function PromotionPage() {
         ? { key, direction: prev.direction === "asc" ? "desc" : "asc" }
         : { key, direction: "asc" }
     );
+    setPage(1); // sắp xếp thì về trang 1
   };
 
   const renderSortIcon = (key) => {
@@ -117,6 +124,9 @@ export default function PromotionPage() {
         ) {
           aVal = Number(aVal);
           bVal = Number(bVal);
+        } else if (typeof aVal === "string" || typeof bVal === "string") {
+          aVal = aVal?.toString().toLowerCase();
+          bVal = bVal?.toString().toLowerCase();
         }
 
         if (aVal < bVal) return sortConfig.direction === "asc" ? -1 : 1;
@@ -126,6 +136,15 @@ export default function PromotionPage() {
     }
     return sorted;
   }, [promotions, sortConfig]);
+
+  // --- TÍNH TOÁN PHÂN TRANG ---
+  const total = sortedPromotions.length;
+  const totalPages = Math.max(1, Math.ceil(total / pageSize));
+  const safePage = Math.min(page, totalPages);
+  const start = (safePage - 1) * pageSize;
+  const end = start + pageSize;
+  const pageItems = sortedPromotions.slice(start, end);
+  // -----------------------------
 
   return (
     <div className="container mt-4">
@@ -138,6 +157,17 @@ export default function PromotionPage() {
           value={search}
           onChange={(e) => setSearch(e.target.value)}
         />
+        {/* Chọn kích thước trang */}
+        <div className="ms-auto d-flex align-items-center gap-2">
+          <span>Kích thước trang:</span>
+          <select
+            className="form-select w-auto"
+            value={pageSize}
+            onChange={(e) => { setPageSize(Number(e.target.value)); setPage(1); }}
+          >
+            {[5, 10, 20, 50, 100].map(n => <option key={n} value={n}>{n}</option>)}
+          </select>
+        </div>
       </div>
 
       <table className="table table-bordered table-hover">
@@ -169,14 +199,14 @@ export default function PromotionPage() {
           </tr>
         </thead>
         <tbody>
-          {sortedPromotions.length === 0 ? (
+          {pageItems.length === 0 ? (
             <tr>
               <td colSpan={9} className="text-center">Không có dữ liệu</td>
             </tr>
           ) : (
-            sortedPromotions.map((p, i) => (
+            pageItems.map((p, i) => (
               <tr key={p.id}>
-                <td>{i + 1}</td>
+                <td>{start + i + 1}</td>
                 <td>{p.name}</td>
                 <td>{new Date(p.startDate).toLocaleDateString()}</td>
                 <td>{new Date(p.endDate).toLocaleDateString()}</td>
@@ -193,6 +223,68 @@ export default function PromotionPage() {
           )}
         </tbody>
       </table>
+
+      {/* Điều hướng phân trang (trượt + …) */}
+      <div className="d-flex justify-content-between align-items-center mt-3">
+        <div>
+          Hiển thị <strong>{total === 0 ? 0 : start + 1}</strong>–<strong>{Math.min(end, total)}</strong> / <strong>{total}</strong> bản ghi
+        </div>
+        <div className="btn-group">
+          <button
+            className="btn btn-outline-secondary"
+            disabled={safePage === 1}
+            onClick={() => setPage((p) => Math.max(1, p - 1))}
+          >
+            ‹ Trước
+          </button>
+
+          {(() => {
+            const makePages = (totalP, current) => {
+              const MAX_SIMPLE = 7;
+              if (totalP <= MAX_SIMPLE) {
+                return Array.from({ length: totalP }, (_, i) => i + 1);
+              }
+              const pages = [];
+              const delta = 1; // số trang kề 2 bên trang hiện tại
+
+              const left = Math.max(2, current - delta);
+              const right = Math.min(totalP - 1, current + delta);
+
+              pages.push(1);
+              if (left > 2) pages.push("…");
+              for (let p = left; p <= right; p++) pages.push(p);
+              if (right < totalP - 1) pages.push("…");
+              pages.push(totalP);
+
+              return pages;
+            };
+
+            return makePages(totalPages, safePage).map((p, idx) =>
+              p === "…" ? (
+                <button key={`e-${idx}`} className="btn btn-outline-secondary" disabled>
+                  …
+                </button>
+              ) : (
+                <button
+                  key={p}
+                  className={`btn ${p === safePage ? "btn-primary" : "btn-outline-secondary"}`}
+                  onClick={() => setPage(p)}
+                >
+                  {p}
+                </button>
+              )
+            );
+          })()}
+
+          <button
+            className="btn btn-outline-secondary"
+            disabled={safePage === totalPages}
+            onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+          >
+            Sau ›
+          </button>
+        </div>
+      </div>
 
       {/* Modal Thêm/Sửa */}
       {modalVisible && (

@@ -12,6 +12,11 @@ export default function PublisherPage() {
   const [deleteId, setDeleteId] = useState(null);
   const [sortConfig, setSortConfig] = useState({ key: '', direction: 'asc' });
 
+  // --- PHÂN TRANG (client-side) ---
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
+  // ---------------------------------
+
   const fetchPublishers = async () => {
     try {
       const url = search
@@ -34,6 +39,7 @@ export default function PublisherPage() {
       }
 
       setPublishers(data);
+      setPage(1); // mỗi lần tìm/sort quay về trang 1
     } catch (err) {
       alert(err.response?.data?.message || 'Không thể tải dữ liệu!');
     }
@@ -95,12 +101,22 @@ export default function PublisherPage() {
       }
       return { key, direction: 'asc' };
     });
+    setPage(1);
   };
 
   const getSortIcon = (key) => {
     if (sortConfig.key !== key) return '';
     return sortConfig.direction === 'asc' ? '▲' : '▼';
   };
+
+  // --- TÍNH TOÁN PHÂN TRANG ---
+  const total = publishers.length;
+  const totalPages = Math.max(1, Math.ceil(total / pageSize));
+  const safePage = Math.min(page, totalPages);
+  const start = (safePage - 1) * pageSize;
+  const end = start + pageSize;
+  const pageItems = publishers.slice(start, end);
+  // -----------------------------
 
   return (
     <div className="container mt-4">
@@ -114,6 +130,17 @@ export default function PublisherPage() {
           value={search}
           onChange={(e) => setSearch(e.target.value)}
         />
+        {/* Chọn kích thước trang */}
+        <div className="ms-auto d-flex align-items-center gap-2">
+          <span>Kích thước trang:</span>
+          <select
+            className="form-select w-auto"
+            value={pageSize}
+            onChange={(e) => { setPageSize(Number(e.target.value)); setPage(1); }}
+          >
+            {[5, 10, 20, 50, 100].map(n => <option key={n} value={n}>{n}</option>)}
+          </select>
+        </div>
       </div>
 
       <table className="table table-bordered table-hover">
@@ -133,13 +160,13 @@ export default function PublisherPage() {
           </tr>
         </thead>
         <tbody>
-          {publishers.length === 0 ? (
+          {pageItems.length === 0 ? (
             <tr><td colSpan={5} className="text-center">Không có dữ liệu</td></tr>
           ) : (
-            publishers.map((pub, i) => (
+            pageItems.map((pub, i) => (
               <tr key={pub.id}>
-                <td>{i + 1}</td>
-                <td>{pub.id}</td>
+                <td>{start + i + 1}</td>
+                <td style={{ wordBreak: 'break-all' }}>{pub.id}</td>
                 <td>{pub.name}</td>
                 <td><input type="checkbox" checked={pub.isDeleted} readOnly /></td>
                 <td>
@@ -151,6 +178,68 @@ export default function PublisherPage() {
           )}
         </tbody>
       </table>
+
+      {/* Điều hướng phân trang (trượt + …) */}
+      <div className="d-flex justify-content-between align-items-center mt-3">
+        <div>
+          Hiển thị <strong>{total === 0 ? 0 : start + 1}</strong>–<strong>{Math.min(end, total)}</strong> / <strong>{total}</strong> bản ghi
+        </div>
+        <div className="btn-group">
+          <button
+            className="btn btn-outline-secondary"
+            disabled={safePage === 1}
+            onClick={() => setPage((p) => Math.max(1, p - 1))}
+          >
+            ‹ Trước
+          </button>
+
+          {(() => {
+            const makePages = (totalP, current) => {
+              const MAX_SIMPLE = 7;
+              if (totalP <= MAX_SIMPLE) {
+                return Array.from({ length: totalP }, (_, i) => i + 1);
+              }
+              const pages = [];
+              const delta = 1; // số trang kề 2 bên trang hiện tại
+
+              const left = Math.max(2, current - delta);
+              const right = Math.min(totalP - 1, current + delta);
+
+              pages.push(1);
+              if (left > 2) pages.push("…");
+              for (let p = left; p <= right; p++) pages.push(p);
+              if (right < totalP - 1) pages.push("…");
+              pages.push(totalP);
+
+              return pages;
+            };
+
+            return makePages(totalPages, safePage).map((p, idx) =>
+              p === "…" ? (
+                <button key={`e-${idx}`} className="btn btn-outline-secondary" disabled>
+                  …
+                </button>
+              ) : (
+                <button
+                  key={p}
+                  className={`btn ${p === safePage ? 'btn-primary' : 'btn-outline-secondary'}`}
+                  onClick={() => setPage(p)}
+                >
+                  {p}
+                </button>
+              )
+            );
+          })()}
+
+          <button
+            className="btn btn-outline-secondary"
+            disabled={safePage === totalPages}
+            onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+          >
+            Sau ›
+          </button>
+        </div>
+      </div>
 
       {/* Modal Thêm/Sửa */}
       {modalVisible && (
