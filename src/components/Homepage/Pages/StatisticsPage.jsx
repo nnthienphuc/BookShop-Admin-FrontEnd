@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import axios from "axios";
+import axiosInstance from "../../../utils/axiosInstance";
 import RevenueChart from "./RevenueChart";
 
 export default function StatisticsPage() {
@@ -22,7 +22,7 @@ export default function StatisticsPage() {
       if (from) params.from = from;
       if (to) params.to = to;
 
-      const res = await axios.get("http://localhost:5286/api/admin/statistics/revenue", { params });
+      const res = await axiosInstance.get("http://localhost:5286/api/admin/statistics/revenue", { params });
       setData({
         totalOrders: res.data?.totalOrders ?? 0,
         totalBooksSold: res.data?.totalBooksSold ?? 0,
@@ -36,7 +36,7 @@ export default function StatisticsPage() {
 
   const fetchGrowthData = async (year) => {
     try {
-      const res = await axios.get(`http://localhost:5286/api/admin/statistics/growth?year=${year}`);
+      const res = await axiosInstance.get(`http://localhost:5286/api/admin/statistics/growth?year=${year}`);
       setGrowthData(res.data);
     } catch (err) {
       console.error("Lỗi tải biểu đồ tăng trưởng", err);

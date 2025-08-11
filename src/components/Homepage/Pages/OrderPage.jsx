@@ -281,10 +281,12 @@ export default function OrderPage() {
               "staffName",
               "customerName",
               "customerPhone",
+              "customerAddress",
               "createdTime",
               "status",
               // "shippingFee",
               "totalAmount",
+              // "note",
               "isDeleted",
             ].map((key, i) => (
               <th
@@ -296,11 +298,13 @@ export default function OrderPage() {
                   [
                     "Nhân viên",
                     "Khách hàng",
-                    "SĐT Khách",
-                    "Ngày",
+                    "SĐT",
+                    "Địa chỉ",
+                    "Thời gian",
                     "Trạng thái",
                     // "Phí ship",
                     "Tổng tiền",
+                    // "Ghi chú",
                     "Đã xoá",
                   ][i]
                 }
@@ -324,10 +328,12 @@ export default function OrderPage() {
                 <td>{o.staffName}</td>
                 <td>{o.customerName}</td>
                 <td>{o.customerPhone}</td>
+                <td>{o.customerAddress || "-"}</td>
                 <td>{new Date(o.createdTime).toLocaleString()}</td>
                 <td>{o.status}</td>
                 {/* <td>{o.shippingFee}</td> */}
                 <td>{o.totalAmount}</td>
+                {/* <td>{o.note || "-"}</td>    */}
                 <td>
                   <input type="checkbox" checked={o.isDeleted} readOnly />
                 </td>
@@ -481,7 +487,7 @@ export default function OrderPage() {
                       }
                     >
                       <option>Tiền mặt</option>
-                      <option>MoMo</option>
+                      {/* <option>MoMo</option> */}
                     </select>
                   </div>
                 </div>
