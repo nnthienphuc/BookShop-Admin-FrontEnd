@@ -23,10 +23,15 @@ export default function LoginForm() {
     const params = new URLSearchParams(location.search);
     if (params.get('activated') === 'true') {
       setMessage('Tài khoản đã được kích hoạt. Vui lòng đăng nhập.');
-    }
+    } else if (params.get('activated') === 'false') {
+    setError('Token không hợp lệ hoặc tài khoản đã được kích hoạt trước đó.');
+  }
+
     if (params.get('reset') === 'success') {
       setMessage('Mật khẩu đã được đặt lại thành 123456. Vui lòng đăng nhập.');
-    }
+    }else if (params.get('reset') === 'failed') {
+    setError('Token đặt lại mật khẩu không hợp lệ hoặc đã hết hạn.');
+  }
   }, [location]);
   
 
